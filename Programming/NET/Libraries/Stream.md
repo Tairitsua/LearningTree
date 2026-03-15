@@ -94,7 +94,7 @@ internal sealed class MoRpcApiHttpInfoMiddleware(IGlobalJsonOption jsonOption, I
             await context.Response.WriteAsJsonAsync(exRes);
             exceptionStream.Position = 0;
             await exceptionStream.CopyToAsync(originalBodyStream);
-            //巨坑：必须使用原有HTTPContext的Stream，猜想：因为独自开的Stream被using自动Dispose掉了，返回后无法读取。
+            //注意：必须使用原有HTTPContext的Stream，猜想：因为独自开的Stream被using自动Dispose掉了，返回后无法读取。
 
         }
         finally
@@ -104,3 +104,12 @@ internal sealed class MoRpcApiHttpInfoMiddleware(IGlobalJsonOption jsonOption, I
     }
 }
 ```
+
+## 补充
+
+### Response.Body 回写
+
+- 来源：`Monica.Framework`
+- 拦截并重写响应体时，最后一定要把内容复制回原始 `HttpContext.Response.Body`。
+- 如果把 `Response.Body` 直接替换成临时 `MemoryStream` 并让它随作用域释放，后续中间件或宿主读取响应体时就可能拿到无效流。
+- 安全模式是：先保存原始流，再切换到临时流处理，写完后 `CopyToAsync(originalBodyStream)`，最后在 `finally` 里恢复原始流。

@@ -87,3 +87,24 @@ endpoints.MapGet("/data-channel/channels", async (HttpResponse response, HttpCon
  app.UseEndpointsSharedConfig(config, "基础功能");
 
 ```
+
+## 补充
+
+### Swagger
+
+- 来源：`Monica.DomainDrivenDesign`
+- 在约定生成控制器的场景里，`DocInclusionPredicate((_, _) => true)` 可能是必须的；不加时，ABP 或自动生成的控制器可能直接不出现在 Swagger 中。
+- 匿名对象、编译器生成的临时类型、名称不稳定类型，或包含非法字符的类型名，都可能触发 `schemaId` 冲突；更稳的方案是使用显式 DTO，并自定义 `schemaId` 清洗规则。
+- XML 注释要生效，项目需要开启 `<GenerateDocumentationFile>true</GenerateDocumentationFile>`，同时把生成的 xml 路径传给 `IncludeXmlComments(...)`。
+
+### Minimal API
+
+- 来源：`Monica.DomainDrivenDesign`、`FIPS2022`
+- Minimal API 对 `ObjectResult` 的处理和 MVC Controller 不一样；MVC 会取 `Value`，Minimal API 可能直接把整个对象序列化出去，因此更适合返回 `Results.Json(...)` 或 `Microsoft.AspNetCore.Http.Results`。
+- 某些 Minimal API 端点如果直接写成 `async context => ...`，Swagger 可能不显示；显式写成 `async (HttpResponse response, HttpContext context) => ...` 更稳。
+
+### 中间件
+
+- 来源：`FIPS2022`
+- `UseRouting()` 必须在 `UseEndpoints()` 前；第一次 `UseEndpoints()` 之后再插入中间件，后续追加的 endpoints 仍会挂到第一次的 endpoint builder 上，中间插入的中间件相当于白放。
+- 实践上应先完成异常处理、鉴权、代理、数据库等中间件注册，最后再集中挂 endpoints。

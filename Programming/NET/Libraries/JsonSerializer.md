@@ -82,3 +82,23 @@ var json2 = """
            }
            """;
 ```
+
+## 补充
+
+### ASP.NET Core 全局 JSON
+
+- 来源：`Monica.Core`
+- 如果项目同时用了 MVC 和 Minimal API，只配置 `Microsoft.AspNetCore.Mvc.JsonOptions` 不够，`Microsoft.AspNetCore.Http.Json.JsonOptions` 也要一起配置。
+- 最稳的做法是维护一份统一的 `JsonSerializerOptions`，再分别克隆到 MVC 与 Minimal API；否则枚举序列化、空值忽略、引用循环等行为容易不一致。
+
+### 带时区偏移的 `DateTime`
+
+- 来源：`Monica.Core`
+- 类似 `2024-08-08T03:27:05+08:00` 这种带时区偏移的输入，进入 MVC 反序列化或绑定后，得到的 `DateTime.Kind` 可能已经是 `Utc`。
+- 如果业务语义依赖“本地时间”而不是“绝对时刻”，不要想当然地把反序列化结果继续当本地时间使用，最好统一做一次归一化处理。
+
+### 自定义 `DateTime?` Converter 与 `null`
+
+- 来源：`Monica.Core`
+- 自定义 `JsonConverter<DateTime?>` 时，如果希望 `null` 也走进自己的转换逻辑，需要显式重写 `HandleNull => true`。
+- 不加这个设置时，`null` token 可能直接被框架短路，你的 converter 根本不会进入。

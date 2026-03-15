@@ -150,3 +150,16 @@ services.AddHttpClient<CommandFlightHttpApi>(_ => client.CreateGrpcService<IComm
 `TryAddEnumerable`(ServiceDescriptor) on the other hand peeps into the DI container , looks for whether the **SAME** implementation type (concrete class) as the implementation type given in the call has already been registered for the given service type. If yes, then it does not register the implementation type (given in the call) for the service type (given in the call). If no, then it does. Thats why there is the `Enumerable` suffix in there. _The suffix indicates that it CAN register more than one implementation types for the same service type!_
 
 多次注册构造函数获取实例只会获取最后一次注册，需要获取所有实现可以注入`IEnumerable<IMyInterface>` （待验证）
+
+## Monica / FIPS2022 补充
+
+### 激活与构造函数选择
+
+- Monica `IMoCurrentUserBase`：实现类存在多个构造函数时，DI 不一定能稳定判断，应使用 `[ActivatorUtilitiesConstructor]` 指定入口构造函数。
+- FIPS2022 `DbContextShardingTableExtensions`：需要带运行时参数创建全新 `DbContext` 时，优先 `ActivatorUtilities.CreateInstance`；直接从容器解析可能又拿到同一个单例或缓存实例。
+
+### 注册校验与约定注册
+
+- FIPS2022 `UnifiedAppRunner`：`UseDefaultServiceProvider` 配合 `ValidateOnBuild`、`ValidateScopes`，可以在启动阶段提前抓出缺注册和生命周期错误。
+- FIPS2022 `OurClock`：`ABP` 约定注册依赖“实现类名后缀能匹配接口名”；不满足时需要 `ExposeServices` 明确暴露服务。
+- 学习要点：后台任务、分片工厂、运行时创建对象这类边界代码，最好尽早开启容器校验，避免把注入错误拖到运行期。

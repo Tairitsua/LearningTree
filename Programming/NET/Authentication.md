@@ -240,3 +240,12 @@ public class ClaimsPrincipal
 ```
 
 ![](../../attachments/Pasted%20image%2020240627160448.png)
+
+## 补充
+
+### JWT
+
+- 来源：`Monica.Authority`
+- 对称签名密钥必须稳定，不要在每次启动时动态生成；否则服务重启或多实例部署后，旧 token 会批量失效。
+- 对称密钥至少保证 `128 bit`，不足时要做补齐或规范化后再生成 `SymmetricSecurityKey`。
+- `PadRight` 这类做法只是兜底，根本上还是要把配置中的 `Secret` 维护成固定、足够长、可跨实例一致的值。

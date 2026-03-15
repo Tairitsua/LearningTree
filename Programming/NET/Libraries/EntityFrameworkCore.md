@@ -546,3 +546,35 @@ sequenceDiagram
 ```
 
 ---
+
+## Monica / FIPS2022 补充
+
+### 查询、分页与分片
+
+- Monica `MoAbstractKeyCrudAppService`：`Include` 在 `EF Core 8` 下可能触发自动 `SplitQuery`；再叠加 `Skip/Take` 时必须补稳定排序，最好带唯一键兜底。
+- Monica `MoAbstractKeyCrudAppService`：连续 `OrderBy` 的最终效果取决于 provider 翻译，`PgSQL` 一类 provider 可能只保留最后一次排序；追加排序优先用 `ThenBy`。
+- Monica `MoAbstractKeyCrudAppService`：分表分页前必须先排序；若 `Select` 后把排序字段裁掉，分片聚合后可能退回内存排序并直接失败。
+- Monica `MoAbstractKeyCrudAppService`：`DisableSoftDeleteFilter` 在分表场景可能失效，查已删数据时要单独验证最终 SQL。
+- Monica `MoAbstractKeyCrudAppService`：若 DTO 已声明子表字段，`ProjectToType` 可能已把关联数据带出，额外 `Include` 往往只是放大查询。
+
+### 跟踪、状态与保存
+
+- Monica `MoRepository`：实体状态通常在 `ChangeTracker.Entries()` 或 `DetectChanges()` 时刷新；若刷新后发现值与原值一致，会回到 `Unchanged`，所以“删同步 / CDC 风格更新”未必会被判成 `Modified`。
+- Monica `MoDbContext`：想在日志里看到真实参数值，`EnableSensitiveDataLogging` 需要放在 `OnConfiguring`，放在别处可能不生效。
+- Monica `MoDbContext`：`ABP 8.0.2` 的相关变更判断漏掉了 `ValueGenerated.OnAdd`，依赖该判断发布事件或审计时要自行补齐。
+- Monica `MoAuditPropertySetter`：审计或删除属性设置阶段不要再触发依赖同一 `DbContext` 的数据库访问，否则容易出现第二个并发操作异常。
+
+### 事务、分片与 Provider 差异
+
+- FIPS2022 `SqlConfig`：`EnableRetryOnFailure` 可能与分片状态管理器创建的用户事务冲突；要么改用执行策略包裹事务，要么不要直接开启。
+- FIPS2022 `DbContextBuilderExtensions`：`EF Core 8` 虽支持对未映射类型做 `SqlQuery`，但接入 `IShardingTable` 等分片组件后可能重新要求类型进入模型。
+- FIPS2022 `OurDbContext`：分片保存链路可能重复进入保存前逻辑，需要做重入保护，避免同一轮保存被二次处理。
+- FIPS2022 `OurBackgroundJob`：后台任务里显式开启 `UnitOfWork` 后，最终仍要 `CompleteAsync`，否则事务不会真正提交。
+- FIPS2022 `DomainMatchFlight`：`PgSQL` 对 `DateTime.Now` 的翻译依赖数据库时区；应用时区和库时区不一致时，筛选条件会静默偏移。
+
+### 模型配置与批量更新
+
+- FIPS2022 `InMessage`：列名或列类型配置对“无可写 setter 的属性”不一定按预期生效，封装型属性要先验证最终模型。
+- FIPS2022 `InMessage`：`Owned Type` 目前不适合直接承担跨宿主字段的联合索引，`HasIndex` 能力有限，设计上尽量摊平或改成独立实体。
+- FIPS2022 `SeederAlarmCodePermissions`：已跟踪实体本身会自动识别差异；`Update`、`UpdateRange`、`UpdateMany` 属于强制标记 `Modified`，会放大更新面。
+- FIPS2022 `DomainEventHandlerEventAlterFlight`：如果缺少 `UnitOfWork`，很容易误以为 `ChangeTracker` 失效；先确认是否处在正确的工作单元边界内。

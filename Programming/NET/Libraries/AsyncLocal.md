@@ -338,7 +338,6 @@ class Program
 
 >  阻止上下文仅对当前创建新的线程有效，**内部如果继续使用AsyncLocal，继续创建新线程，仍会产生流动**，需要重新在内部阻止上下文流动。
 
-
 ### ThreadPool.UnsafeQueueUserWorkItem
 
 - 直接向线程池提交任务，​**​不捕获当前上下文​**​。
@@ -350,3 +349,13 @@ class Program
   }, null);
 
 ```
+
+## Monica 源码学习笔记
+
+### IAsyncEnumerable 与 AsyncLocal
+
+- 分类：异步上下文流 / `ExecutionContext`
+- 来源：`Monica.DomainDrivenDesign/AutoCrud/MoAbstractKeyCrudAppService.cs`
+- 现象：当接口改为返回 `IAsyncEnumerable` 时，进入流式方法前后就可能已经拿不到原来的 `AsyncLocal` 值，不一定要等到 `await foreach` 内部才暴露问题。
+- 理解：`AsyncLocal` 依赖 `ExecutionContext`，而异步流的启动和逐项迭代包含更多调度边界，不能把它当成普通 `Task` 链路那样稳定透传。
+- 实践：关键上下文应在进入异步流前转成显式参数或局部快照；事务、用户态、租户态等不要只寄托在 `AsyncLocal` 上。

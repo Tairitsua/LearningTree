@@ -659,3 +659,19 @@ In simple English, `Moq` is a library which when you include in your project giv
 #### Response中的Cookies
 
 如果`Request`没有使用`CookieContainer`时，那么返回的`Response`也不会有`Cookie`（但可以在`Header`看到）。所以要`Cookie`得需要再`Request`时候新建一个`CookieContainer`。
+
+## 补充
+
+### Blazor / Razor Components
+
+- 来源：`Monica.UI`
+- `UseStaticWebAssets()` 更适合本地调试或开发环境，方便直接读取引用库静态资源；生产环境应依赖 `dotnet publish` 输出的静态资源，不要把它当正式部署方案。
+- 如果调试时出现 `/_framework/blazor.web.js`、样式文件或其他静态资源 `404`，要先检查当前环境是否真的走到了开发配置，以及项目是否正确启用了 Web Assets 相关设置。
+- `MapRazorComponents(...).AddInteractiveServerRenderMode()` 后，如果缺少 `AddAdditionalAssemblies(...)`，站内路由跳转可能正常，但浏览器直接 `F5` 刷新会出现 `404`。
+- CSS isolation 最终会按入口程序集生成 `xxx.styles.css`；消费组件库时，样式资源查找应以入口程序集名称为准，而不是组件库自己的程序集名。
+
+### Controller 与动态代理
+
+- 来源：`Monica.DependencyInjection`
+- 如果希望 `Controller` 参与基于 DI 的动态代理或拦截，仅靠默认 Controller 激活流程可能不够；需要使用 `AddControllersAsServices()` 让 Controller 真正进入容器管理。
+- 否则即使普通请求还能工作，代理生成和拦截器注入也可能完全不生效。
