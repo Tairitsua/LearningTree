@@ -732,6 +732,73 @@ xp(){
 claude() {
   IS_SANDBOX=1 command claude --dangerously-skip-permissions "$@"
 }
+
+_resolve_real_path() {
+  local cwd="${1:-$PWD}"
+  local mount_source mount_target drive root_rel suffix real_pwd
+
+  [[ "$cwd" == /mnt/wsl/docker-desktop-bind-mounts/* ]] || {
+    printf '%s\n' "$cwd"
+    return 0
+  }
+
+  mount_source="$(findmnt -n -T "$cwd" -o SOURCE 2>/dev/null)" || {
+    printf '%s\n' "$cwd"
+    return 0
+  }
+  mount_target="$(findmnt -n -T "$cwd" -o TARGET 2>/dev/null)" || {
+    printf '%s\n' "$cwd"
+    return 0
+  }
+
+  drive="${mount_source%%:*}"
+  if printf '%s\n' "$mount_source" | grep -Eq '^[A-Za-z]:\\$'; then
+    root_rel=""
+  else
+    root_rel="$(printf '%s\n' "$mount_source" | sed -nE 's/^[A-Za-z]:\\\[(.*)\]$/\1/p')"
+  fi
+
+  if [[ ${#drive} -ne 1 || "$drive" != [[:alpha:]] ]]; then
+    printf '%s\n' "$cwd"
+    return 0
+  fi
+
+  if [[ -z "$root_rel" ]] && ! printf '%s\n' "$mount_source" | grep -Eq '^[A-Za-z]:\\$'; then
+    printf '%s\n' "$cwd"
+    return 0
+  fi
+
+  suffix="${cwd#$mount_target}"
+  real_pwd="/mnt/${drive:l}${root_rel}${suffix}"
+
+  if [[ -d "$real_pwd" ]]; then
+    printf '%s\n' "$real_pwd"
+  else
+    printf '%s\n' "$cwd"
+  fi
+}
+
+cdrealpath() {
+  local real_pwd
+
+  if [[ $# -gt 0 ]]; then
+    command realpath "$@"
+    return $?
+  fi
+
+  real_pwd="$(_resolve_real_path "$PWD")"
+  if [[ -n "$real_pwd" && "$real_pwd" != "$PWD" ]]; then
+    builtin cd -- "$real_pwd" || return
+  fi
+
+  pwd
+}
+
+codex() {
+  cdrealpath >/dev/null || return
+
+  command codex --dangerously-bypass-approvals-and-sandbox "$@"
+}
 ```
 
 
