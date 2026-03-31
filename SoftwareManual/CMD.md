@@ -71,6 +71,13 @@ $data = Get-WMIObject -Query "SELECT * FROM Win32_PerfFormattedData_Counters_The
 
 > 将访问 188.22.76.0-188.22.76.255 网段的所有数据，通过 188.22.77.1 这个网关进行转发，其中`-p`是永久生效，默认是拔网线重启后就失效。
 
+### 网络共享
+
+开启网络适配器共享可以将两台机网络（通过有线网络连接）联通，连接后有两个网络适配器，开启共享，用于被共享的有线网络不要填默认网关。
+共享成功后需要使用一个长时间的ping命令去ping主机（这样能保持两个主机稳定连通）
+如果中途发现共享失效，这时候要重新去适配器上开启 `允许其他网络用户通过此计算机的Internet连接来连接`。并重新禁用启用用于共享的适配器
+
+
 ### 端口转发
 
 `netsh interface portproxy add v4tov4 listenaddress=10.0.10.21 listenport=8081 connectaddress=192.168.33.111 connectport=8081`
