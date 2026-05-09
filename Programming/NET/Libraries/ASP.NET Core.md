@@ -669,6 +669,21 @@ In simple English, `Moq` is a library which when you include in your project giv
 - 如果调试时出现 `/_framework/blazor.web.js`、样式文件或其他静态资源 `404`，要先检查当前环境是否真的走到了开发配置，以及项目是否正确启用了 Web Assets 相关设置。
 - `MapRazorComponents(...).AddInteractiveServerRenderMode()` 后，如果缺少 `AddAdditionalAssemblies(...)`，站内路由跳转可能正常，但浏览器直接 `F5` 刷新会出现 `404`。
 - CSS isolation 最终会按入口程序集生成 `xxx.styles.css`；消费组件库时，样式资源查找应以入口程序集名称为准，而不是组件库自己的程序集名。
+```cs
+            // Important pitfall:
+            // UseStaticWebAssets is useful for debugging static resources (CSS/JS) from referenced RCLs in Visual Studio,
+            // but it can cause 404 behavior in certain build/debug combinations and must not be relied on for production.
+            // In production, static web assets should come from published output (`dotnet publish`).
+            // https://github.com/MudBlazor/MudBlazor/issues/2793
+            webBuilder.WebHost.UseStaticWebAssets();
+            // In local/testing scenarios, generated static-web-asset mappings can be inspected via .StaticWebAssets.xml.
+            // In production publish output, dependent static web assets are copied into the deployed wwwroot content.
+            // https://learn.microsoft.com/en-us/aspnet/core/razor-pages/ui-class?view=aspnetcore-8.0&tabs=visual-studio#consume-content-from-a-referenced-rcl
+            
+            // If `/_framework/blazor.web.js` returns 404 in Debug, one possible cause is static-web-asset setup.
+            // Another cause is an unexpected environment (for example, launchSettings.json not being applied).
+            // Also verify `<RequiresAspNetWebAssets>true</RequiresAspNetWebAssets>` in the host .csproj when needed.
+```
 
 ### Controller 与动态代理
 
