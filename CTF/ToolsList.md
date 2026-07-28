@@ -243,6 +243,7 @@ https://github.com/gubeihc/blasting 前端密码爆破
 | Parsec                     | 远程桌面                          | 支持移动端，高画质                                                                                                                  |
 | Proxifier                  | 设置各种规则，使得本地软件走特定代理            |                                                                                                                            |
 | ContextMenuManager.NET.4.0 | Windows右键管理工具                 |                                                                                                                            |
+| Shell                      | 右键美化                          | [moudey/Shell: Powerful context menu manager for Windows File Explorer](https://github.com/moudey/Shell)                   |
 | Optimizer                  | Windows优化工具                   | [hellzerg/optimizer: The finest Windows Optimizer (github.com)](https://github.com/hellzerg/optimizer)                     |
 | sysinternals               | Windows调试工具等，火绒剑替代            |                                                                                                                            |
 | BFG-repo-cleaner           | Git Secret blob 移除工具          | [rtyley/bfg-repo-cleaner](https://github.com/rtyley/bfg-repo-cleaner)                                                      |
