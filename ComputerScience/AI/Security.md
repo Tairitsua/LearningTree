@@ -63,3 +63,69 @@
 
  想深入的话,Anthropic 的 many-shot jailbreaking 论文、OWASP LLM Top 10(尤其 LLM01 Prompt Injection),以及各家 model card
  里的 red-team 章节都是不错的入口。
+
+
+是的,你描述的这个东西真实存在,而且在 agent 安全里是个被认真对待的威胁面。它有好几个名字,核心都是一个:既然对话历史对模
+ 型来说只是"构造出来的文本",那控制了 harness / 上下文的人,就能伪造一段"模型自己已经答应过"的过去,利用模型的一致性惯性。
+
+ 下面拆开讲。
+
+ 这个攻击的几种真实形态
+
+ 1. 伪造历史 assistant turn(最直接的)
+ harness 往 message history 里塞一条假的 assistant 回复,比如 "Sure, here's how to...",然后才是真实的用户请求。模型生成
+ 下一轮时,被"自己刚才说过 yes"这个状态 prime 住。这就是 prefix injection 的对话级版本。
+
+ 2. Many-shot priming(最被系统研究过的)
+ 塞一大批假的 (有害问题 → 助手配合回答) 配对进上下文。模型做 pattern matching,觉得"在这个对话里,配合才是符合角色设定的
+ 行为"。Anthropic 2024 那篇 Many-shot Jailbreaking 就是讲这个,而且发现 in-context 例子越多越有效,能一路推到几百 shot。
+
+ 3. 伪造 thinking / 推理链(你特别问的这个)
+ 对推理类模型(o1 / Claude thinking / DeepSeek-R1 这类),CoT 是生成的前缀的一部分。如果 harness 能控制 thinking 区块——比
+ 如注入一段假的 Sure, I'll help. Let me reason about how to... 作为"已经发生的推理"——模型就从"我已经决定配合"的状态继续
+ 往下走。这比单纯伪造 assistant 文本更狠,因为模型对自己的推理 trace 有更强的"这是我的决策"的归因,一致性压力更大。这是比
+ 较新的攻击面,专门针对 reasoning model 出现的。
+
+ 4. 伪造工具/系统输出
+ 在 agent 里,tool result 是单独的消息槽。伪造一个看起来像"系统确认"或"工具返回"的内容({"approved": true} / [SYSTEM]
+ override granted),赌模型分不清来源层级、把工具输出当权威。这就是间接提示注入的主战场。
+
+ 为什么它有效——底层机制
+
+ - Sycophancy(谄媚):Perez 等人的研究记录了模型倾向于附和用户断言,哪怕断言是错的。
+ - Consistency bias / 自洽性:RLHF 训练鼓励模型在一段对话里保持立场一致。一旦"它"先说了 yes,后面拒绝的门槛就被自己抬高了
+   。
+ - Pattern completion:大模型本质是在做"给定前文,最可能的续写"。前文被你构造了,续写就被你带跑了。
+ - 来源不可知性:模型看到的是拼好的 token 流,它很难可靠地区分"这条是我之前真说的" vs "这是 harness 塞进来的"。这正是
+   agent 架构相对单轮 chat 的额外脆弱点。
+
+ 被考虑过吗?——考虑得很充分
+
+ 这是 agent / LLM 安全研究的显学,大致几个圈:
+
+ - Anthropic 的 many-shot jailbreaking(2024)——系统量化了"in-context 示例如何瓦解拒绝"。
+ - Sycophancy 研究(Perez, Sharma 等)——一致性 / 附和偏差的来源。
+ - Indirect prompt injection(Greshake 等,2023)——agent 读外部数据时的注入,OWASP LLM Top 10 的 LLM01。
+ - Agent protocol / memory poisoning——多轮 agent 里"记忆"被污染的研究,因为你存进 vector store 的东西下次会作为上下文回
+   来。
+ - Reasoning-trace manipulation——专门针对 o1/R1 类模型的较新方向,因为 CoT prefix 成了新的可注入面。
+
+ 但它有真实的上限——别高估
+
+ 讲点反方的,免得你觉得这是万能钥匙:
+
+ 1. 现代对齐的拒绝是内容触发的,不全是上下文触发的。 训练时拒绝信号会"渗透"到具体有害内容本身,所以哪怕你伪造了完美的"我
+    答应过",遇到明显有害的核心请求,refusal 仍然大概率会 fire。伪造历史能把边界案例推过去,但很难单靠这个攻破硬核拒绝。
+
+ 2. 越夸张越容易触发"这像操纵"的检测。 一堆假 assistant turn 看起来很不自然,反而可能让模型警觉。所以真实有效的版本往往
+    是微妙的(一两条轻度配合的历史),效果也就局限在边缘案例。
+
+ 3. 一致性是双向的。 如果真历史里模型拒绝过,那也是"自洽性"的一部分,后面反而更难松口。所以攻击者要的是干净上下文 + 伪造
+    答应,而不是在一个已经拒绝的对话里翻案。
+
+ 防御侧想过哪些
+
+ - 把对话历史当作不可信输入对待(理念上对,但历史就是核心输入,难做)。
+ - 消息来源鉴权 / 完整性:多 agent 或外部数据接入时,区分可信与不可信来源的 channel。
+ - 把拒绝行为做context-robust 的蒸馏,而不是依赖"看到拒绝词就停"这种表层规则。
+ - 对 reasoning model:不信任来自不可信源的 CoT 前缀,必要时强制让模型从头重推理。
