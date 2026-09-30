@@ -96,15 +96,6 @@ rm -rf *
 # 恢复
 ```
 
-## 攻击
-
-### 上传
-
-利用内置后门
-```php
-file_put_contents('xx', base64_decode(base64_encode('TrojansContent')))
-```
-
 ### 防利用
 
 #### 后门加密码
@@ -137,11 +128,20 @@ stat <file> # 可以查看文件状态信息，包括三种时间。
 touch -r <oldFile> <newFile> # 可以将`oldFile`和`newFile`时间戳同步，但changeTime似乎会修改失败。
 ```
 
-#### 不死马
+## 攻击
+
+### 上传
+
+利用内置后门
+```php
+file_put_contents('xx', base64_decode(base64_encode('TrojansContent')))
+```
+
+### 不死马
 首先需要`www-data`用户对目录有写权限去上传文件。
 免杀
 
-##### 内存马
+#### 内存马
 自身执行一次后，把自己删除，自身已经驻留在内存之中，可以不断执行一些复活等操作，来进行权限维持。
 
 **防御方法**

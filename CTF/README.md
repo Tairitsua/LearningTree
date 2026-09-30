@@ -11,7 +11,7 @@ CTF（Capture The Flag）竞赛域：按方向组织的题型知识、解题套�
 | [Crypto](Crypto/README.md) | 密码学：古典密码/趣味编码/编码速查三大速查表，`RSA` 与数论、分组密码与攻击模型 | [古典密码速查](Crypto/古典密码速查.md)、[编码速查](Crypto/编码速查.md)、[RSA与数论](Crypto/RSA与数论.md) |
 | [Misc](Misc/解题思路.md) | 杂项：解题思维、隐写（图像/音频）、压缩包、流量/取证、数值类 | [解题思路](Misc/解题思路.md)、[图像隐写](Misc/图像隐写/图像隐写.md)、[压缩包](Misc/压缩包.md)、[流量分析](Misc/流量分析.md) |
 | [Web](Web/PHP.md) | Web 漏洞与利用：`PHP` 弱类型、`SSTI`/`SSRF`/文件包含/命令执行、绕过技巧 | [PHP](Web/PHP.md)、[SSTI-模板注入](Web/SSTI-模板注入.md)、[绕过技巧](Web/绕过技巧.md)、[JWT](Web/JWT.md) |
-| [Reverse](Reverse/Reverse.md) | 逆向：桌面（`IDA`/`x64dbg`）与 Android（`Frida`/`Jadx`） | [Reverse](Reverse/Reverse.md)、[PE逆向](Reverse/PE逆向.md)、[Android逆向](Reverse/Android逆向.md) |
+| [Reverse](Reverse/Reverse.md) | 逆向：桌面（`IDA`/`x64dbg`、`PE` 文件格式）与 Android（`Frida`/`Jadx`） | [Reverse](Reverse/Reverse.md)、[Android逆向](Reverse/Android逆向.md) |
 | [Pwn](Pwn/基础.md) | 二进制利用：`pwntools` 基础与 `checksec`/`NX` 概念（域尚薄弱，待扩充） | [基础](Pwn/基础.md) |
 | [AWD](AWD/AWD.md) | 攻防模式：环境与备份、信息收集、不死马/内存马、反弹 `shell`、提权 | [AWD](AWD/AWD.md)、[工具](AWD/工具.md)、[提权](AWD/提权.md)、[Linux要点](AWD/Linux要点.md) |
 | [IncidentResponse](IncidentResponse/常见思路.md) | 应急响应：入侵排查流程、Linux 排查十步、Web/数据库日志分析 | [常见思路](IncidentResponse/常见思路.md) |

@@ -101,6 +101,8 @@ npm config delete https-proxy  # 取消代理
 
 #### Middleware
 
+> [!note] 待补充：`Express` 中间件条目（2026-09-30 拆分自 `Vue.md` 时该节未携带内容，保留节名）。
+
 ## 问题
 
 Cannot find module 'supports-color'

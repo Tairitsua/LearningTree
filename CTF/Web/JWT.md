@@ -1,19 +1,21 @@
-## [JWT](http://www.ruanyifeng.com/blog/2018/07/json_web_token-tutorial.html) 
+# JWT
+
+[JWT 教程 - 阮一峰的网络日志](http://www.ruanyifeng.com/blog/2018/07/json_web_token-tutorial.html)
 
 [Json web token (JWT)](https://datatracker.ietf.org/doc/html/rfc7519)
 
-```css
+```text
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ
 ```
 
 由三段信息构成的，将这三段信息文本用`.`链接一起就构成了Jwt字符串
 
-### header
+## header
 
 - 声明类型，这里是jwt
 - 声明加密的算法 通常直接使用 HMAC SHA256
 
-```bash
+```json
 {
   'typ': 'JWT',
   'alg': 'HS256'
@@ -22,11 +24,11 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4
 
 进行base64编码
 
-```
+```text
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
 ```
 
-### payload
+## payload
 
 - 标准中注册的声明
   - **标准中注册的声明** (建议但不强制使用) ：
@@ -40,7 +42,7 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
 - 公共的声明
 - 私有的声明
 
-```
+```json
 {
   "sub": "1234567890",
   "name": "John Doe",
@@ -51,11 +53,11 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
 
 进行base64编码
 
-```
+```text
 eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9
 ```
 
-### signature
+## signature
 
 - header (base64后的)
 - payload (base64后的)
@@ -63,7 +65,6 @@ eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9
 
 HS256(base64UrlEncode(header) +"."+base64UrlEncode(payload) ,secret)
 
-```
+```text
 TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ
 ```
-

@@ -1,4 +1,6 @@
-# 图像处理
+# Roop换脸环境
+
+> 记录于 CUDA 11.8 时期，新版依赖可能不同
 
 ## Roop One Pic Swap
 

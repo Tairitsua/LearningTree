@@ -34,6 +34,8 @@
 
 `ip.addr == xxx.xxx.xxx.xxx` source或destination是指定ip的数据包
 
+> [!question] 待事实核查：`ip.src_host`/`ip.dst_host` 疑似非标准显示过滤器写法，标准写法为 `ip.src`/`ip.dst`。
+
 ```bash
 # 可以提取想要的数据
 tshark -r challenge.pcapng -Y "http" -T fields -e "http.request.uri.query.parameter" > 2.txt

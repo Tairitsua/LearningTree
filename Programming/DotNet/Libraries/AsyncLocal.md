@@ -341,7 +341,7 @@ class Program
 
 ### ThreadPool.UnsafeQueueUserWorkItem
 
-- 直接向线程池提交任务，​**​不捕获当前上下文​**​。
+- 直接向线程池提交任务，**不捕获当前上下文**。
 
 ```cs
   ThreadPool.UnsafeQueueUserWorkItem(_ =>

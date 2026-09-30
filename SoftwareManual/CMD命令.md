@@ -199,7 +199,7 @@ DOS窗口必须重启后环境变量才有效。
 #### Windows服务启动类型无法修改，为灰色
 
 可以尝试使用命令修改：`sc config "Muse Hub Background Service(服务属性中的服务名称)" start=demand`
-如果报错拒绝访问，可能是因为权限不足。即使是管理员权限，也无法修改。其实还有一个电脑的最高特殊权限，所以还可以通过这个软件：`M2-Team NSudo Launcher`[GitHub - M2TeamArchived/NSudo: [Deprecated, work in progress alternative: https://github.com/M2Team/NanaRun] Series of System Administration Tools](https://github.com/M2TeamArchived/NSudo) （不过需要下载Preview版本，8.2版本会token生成错误）来启动 `services.msc`来修改。
+如果报错拒绝访问，可能是因为权限不足。即使是管理员权限，也无法修改。其实还有一个电脑的最高特殊权限，所以还可以通过这个软件：`M2-Team NSudo Launcher` [GitHub - M2TeamArchived/NSudo: Series of System Administration Tools](https://github.com/M2TeamArchived/NSudo)（Deprecated, work in progress alternative: [NanaRun](https://github.com/M2Team/NanaRun)） （不过需要下载Preview版本，8.2版本会token生成错误）来启动 `services.msc`来修改。
 
 如果还是为灰色，那就说明这是个流氓软件，只能通过注册表修改了：
 参考路径：`计算机\HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\<服务名称>`

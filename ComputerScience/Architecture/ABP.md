@@ -106,7 +106,7 @@ using (var uow = _unitOfWorkManager.Begin()
 
 没有引用合适的`Module`
 
-```
+```text
 The requested service 'Volo.Abp.DependencyInjection.ObjectAccessor`1[[Microsoft.AspNetCore.Builder.IApplicationBuilder, Microsoft.AspNetCore.Http.Abstractions, Version=7.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60]]' has not been registered
 ```
 
@@ -212,3 +212,5 @@ Configure<AbpSystemTextJsonSerializerModifiersOptions>(options =>
 `C# System.Text.Json` 可以通过设置 `JsonSerializerOptions.NumberHandling` 来设定是否转为字符串类型。
 
 ## Time （UTC与本地时间）
+
+> 待补充：ABP 中统一通过 `IClock`（`Clock.Now`）获取当前时间，返回 UTC 还是本地时间由 `AbpClockOptions.Kind`（`Unspecified` / `Local` / `Utc`，默认 `Unspecified`）决定；设为 `Utc` 后 `Clock.Now` 返回 UTC 时间。实体入库/出库时的具体转换行为细节待补充。

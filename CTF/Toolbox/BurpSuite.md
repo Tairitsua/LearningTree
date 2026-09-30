@@ -6,7 +6,7 @@
 
 只添加 `<-loopback>` 到`SwitchyOmega`的 `Bypass-list` 配置里面，需要去掉默认的：
 
-```
+```text
 127.0.0.1  
 ::1  
 localhost

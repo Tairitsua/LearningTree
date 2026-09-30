@@ -59,21 +59,21 @@ namespace Demo
 
 ## 代码层
 
-**●获取当前主程序窗口对象用**
+### 获取当前主程序窗口对象用
 
 `Application.Current.MainWindow`
 
-**●获取当前主程序窗口控件中的对象（需要用x:Name）**
+### 获取当前主程序窗口控件中的对象（需要用x:Name）
 
 `Application.Current.MainWindow.FindName("xxx")`
 
 ## 美化
 
-**●ScrollViewer**
+### ScrollViewer
 
 如果没出现滚动条，去看看`Grid`的`RowDefinition`是不是设置`height`成`auto`了，如果是则去除这个属性即可
 
-**●不规则窗体**
+### 不规则窗体
 
 ![](../../../attachments/a8b839523d633dfadd72ca983567ab6f.png)
 
@@ -96,13 +96,13 @@ private void Grid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 }
 ```
 
-**●使用多个Style**
+### 使用多个Style
 
 原版无法实现，需要借助插件
 
 [WPF中一个元素应用多个Style - 博客园](https://www.cnblogs.com/ainijiutian/p/apply-multiple-styles-to-one-element-for-wpf.html)
 
-**●UI区域划分**
+### UI区域划分
 
 使用`Grid`、`StackPanel`
 
@@ -130,7 +130,7 @@ private void Grid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 </Style>
 ```
 
-**●圆角图片**
+### 圆角图片
 
 `Border`的`Background`属性设置`ImageBrush` 这样会按照`Border`的边框填充图片
 
@@ -142,7 +142,7 @@ private void Grid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 
 ## 资源引入
 
-**●静态资源和动态资源**
+### 静态资源和动态资源
 
 静态资源(`StaticResource`)指的是在程序载入内存时对资源的一次性使用，之后就不再访问这个资源了；动态资源(`DynamicResource`)使用指的是在程序运行过程中然会去访问资源。
 
@@ -150,7 +150,7 @@ private void Grid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 
 ![](../../../attachments/c27af3fbccc17cbf186bf661350fa386.png)
 
-**●使用pack协议查找资源**
+### 使用pack协议查找资源
 
 `WPF`引入了统一资源标识`Uri`(Unified Resource Identifier)来标识和访问资源。其中较为常见的情况是用`Uri`加载图像。`Uri`表达式的一般形式为：协议+授权+路径
 
@@ -202,24 +202,24 @@ img.Source=new BitmapImage(new Uri("pack://application:,,,/images/my.jpg"),UriKi
 
 `pack://application:,,,/Xyz.Koubot.AI.UI;component/ExternUI/Style/WhiteTheme.xaml` 若是运行无法找到资源文件，需要明确程序集，Xyz.Koubot.AI.UI这个项目名，component指示项目初始目录
 
-**●生成操作**
+### 生成操作
 
 需要关注的是，对于媒体资源通常使用**Content与Resource两种不同的方式。**
 
 ## xaml
 
-**●未将对象引用设置到对象的实例**
+### 未将对象引用设置到对象的实例
 
 `VS`会自动的预编译程序，会按照程序在启动时的需要解释xaml，按照xaml中的顺序生成控件，先布局的先生成。在初始加载方法中启动异步线程，异步线程中使用前台控件绑定的属性，与主UI线程分属不同线程，VS判定不了先后顺序，会认为你使用的属性尚未实例，前台中会显示错误，正常启动程序时则不会出现问题。
 
-**●标签扩展**
+### 标签扩展
 
 ```xml
 <TextBox Text="{Binding ElementName=sld,Path=Value}"></TextBox>
 <Slider x:Name="sld" Value="50"></Slider>
 ```
 
-**●x名称空间**
+### x名称空间
 
 **`x:Name`** 为实例创建引用变量的名字，并注册到wpf结构树中
 
@@ -231,7 +231,7 @@ img.Source=new BitmapImage(new Uri("pack://application:,,,/images/my.jpg"),UriKi
 
 **`x:FieldModifier`** 即实例的访问修饰符(public、private)
 
-**●Binding**
+### Binding
 
 `Binding`需要一个数据源，是拿自己的或者上层的`DataContext`
 
@@ -263,11 +263,11 @@ private ObservableCollection<DMCode> codeList;
 
 **一个控件两个属性绑定不同的DataContext：**
 
-```
+```xml
 "{Binding RelativeSource={RelativeSource FindAncestor,AncestorLevel=1,AncestorType={x:Type Grid}},Path=DataContext.PlugInChangeCommand}"
 ```
 
-**●框架**
+### 框架
 
 `MVC`全名是Model View Controller，是模型(model)－视图(view)－控制器(controller)的缩写，一种软件设计典范，用一种业务逻辑、数据、界面显示分离的方法组织代码，将业务逻辑聚集到一个部件里面，在改进和个性化定制界面及用户交互的同时，不需要重新编写业务逻辑。MVC被独特的发展起来用于映射传统的输入、处理和输出功能在一个逻辑的图形化用户界面的结构中。
 
@@ -351,7 +351,7 @@ FindAncestor找外层的DataContext，AncestorType这里指定外层的DataGrid
 
 Views文件夹，UI界面
 
-**●MVVMLight框架**
+### MVVMLight框架
 
 ViewModelLocator类
 

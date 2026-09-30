@@ -35,7 +35,7 @@ fail: Aspire.Hosting.Dashboard.ServiceClient.DashboardClient[0]
 
 ### dapr服务间调用失败，使用的APIPA Address(169.254.*)
 
-```
+```text
 "failed to invoke, id: dev-service-system-api, err: failed to invoke target dev-service-system-api after 3 retries. Error: rpc error: code = Unavailable desc = connection error: desc = "transport: Error while dialing: dial tcp 169.254.94.247:49445: connectex: A socket operation was attempted to an unreachable network.""
 ```
 

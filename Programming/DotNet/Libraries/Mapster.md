@@ -8,7 +8,7 @@ TypeAdapterConfig<TSource, TDestination>
     .IgnoreNonMapped(true) //这里的意思是除了显式配置的Map，其他都忽略
 ```
 
-## TroubleShotting
+## Troubleshooting
 
 ### Cannot convert immutable type
 映射的是不同的类型，比如`DateTime`和`DateOnly` 除非写了两种类型的映射？

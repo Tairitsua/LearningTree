@@ -1,4 +1,4 @@
-
+# SSRF
 
 [了解SSRF,这一篇就足够了 - 先知社区 (aliyun.com)](https://xz.aliyun.com/t/2115)
 [SSRF漏洞用到的其他协议（dict协议，file协议） - My_Dreams - 博客园 (cnblogs.com)](https://www.cnblogs.com/zzjdbk/p/12970919.html)
@@ -6,9 +6,9 @@
 
 SSRF(`Server-Side Request Forgery`, 服务器端请求伪造) 是一种由攻击者构造形成由服务端发起请求的一个安全漏洞。一般情况下，SSRF攻击的目标是从外网无法访问的内部系统。（正是因为它是由服务端发起的，所以它能够请求到与它相连而与外网隔离的内部系统）
 
-# 协议
+## 协议
 
-## Gopher
+### Gopher
 
 `gopher`协议是一个古老且强大的协议，是一种信息查找系统，可以理解为是`http`协议的前身，它可以实现多个数据包整合发送。通过`gopher`协议可以攻击内网的 `FTP`、`Telnet`、`Redis`、`Memcache`，也可以进行 `GET`、`POST` 请求。
 
@@ -26,7 +26,7 @@ gopher://<host>:<port>/<gopher-path>_<TCP数据流>
 
 |语言|支持情况|
 |---|---|
-|PHP|`--wite-curlwrappers`且php版本至少为5.3|
+|PHP|`--with-curlwrappers`且php版本至少为5.3|
 |Java|小于JDK1.7|
 |Curl|低版本不支持|
 |Perl|支持|
@@ -38,7 +38,7 @@ gopher://<host>:<port>/<gopher-path>_<TCP数据流>
 - file_get_contents 关于 Gopher 的 302 跳转有 bug，导致利用失败
 - PHP 的 curl 默认不 follow 302 跳转
 - curl/libcurl 7.43 上 gopher 协议存在 bug（%00 截断），经测试 7.49 可用
-## File
+### File
 基本形式：`file://host/path`
 > If _host_ is omitted, it is taken to be **localhost**, the machine from which the URL is being interpreted. 所以一般就会是用 `file:///path`这种形式
 
