@@ -1,5 +1,7 @@
 # Git
 
+> 治理留痕（2026-09-30）：明显错误修正——文件名拼写 `.gitingore` 统一改为 `.gitignore`；命令笔误 `git add remote origin <url>` 修正为 `git remote add origin <url>`。
+
 ## 概念
 
 ### ref
@@ -190,13 +192,13 @@ git push origin --force-with-lease
 > `--force-with-lease` It allows you to overwrite a remote branch only if your local copy is up to date with the remote branch, or in other words, if you have the "lease" on the remote branch. This way, you can avoid losing someone else's work that you have not fetched yet. If the remote branch has changed since you last fetched it, the push will be rejected and you will have to fetch and merge or rebase before pushing again.
 
 但实测发现还是需要用`--force`，不知道为什么用上面的命令会失败。
-而且还遇到了没有`origin`的定义的问题，手动添加`git add remote origin <url>`
+而且还遇到了没有`origin`的定义的问题，手动添加`git remote add origin <url>`
 另外推送的时候还需要指定`set-upstream`的问题，导致只能一分支一分支的进行`push`
 最后发现其实可以用`git push --force --all`来批量推送
 
-### `.gitingore`不生效
+### `.gitignore`不生效
 
-因为如果已经先前加入了`git`管理的文件，则再添加`.gitingore`则无效，仍然会被追踪`changes`。
+因为如果已经先前加入了`git`管理的文件，则再添加`.gitignore`则无效，仍然会被追踪`changes`。
 
 可以使用
 
@@ -204,7 +206,7 @@ git push origin --force-with-lease
 
 如果缓存太多要删除的，可以使用
 
-`git rm -r --cached .` 全部删除再 `git add .`加回`tracing`，这时候则会遵守`.gitingore`的规则去添加`tracing`。
+`git rm -r --cached .` 全部删除再 `git add .`加回`tracing`，这时候则会遵守`.gitignore`的规则去添加`tracing`。
 
 最后`git commit -m ".gitignore is now working"`
 
@@ -261,6 +263,12 @@ Now you should have a pending pull request in your fork (`MyFork`), which you ca
 ## BFG-repo-cleaner
 
 [BFG Repo-Cleaner by rtyley](https://rtyley.github.io/bfg-repo-cleaner/)
+
+## Git 提交规范
+
+- 只要要求一天提交两次代码，就可以解决 50% 合并冲突的问题（潜在要求一个任务颗粒度较小）。
+
+> 治理留痕（2026-09-30）：本节迁自 `CloudNative/Kubernetes/Kubernetes监控.md` 的 `## Git` 章节（原文为编号列表，已转为标准列表）。
 
 ## 开源协议
 

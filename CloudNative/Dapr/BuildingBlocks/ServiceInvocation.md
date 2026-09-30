@@ -1,5 +1,7 @@
 # Service invocation
 
+> 治理留痕（2026-09-30）：原 `initial http2 frame…GoAwayFrame` 小节的详细排查内容与 `Dapr/故障排除.md` 重复，细节保留在故障排除.md（错误汇编），此处改为一句结论 + 链接。
+
 `daprd sidecar `有`app-port`，是指宿主微服务的`API`监听地址，由`sidecar`去调用的
 
 而`dapr-http-port`是设置`sidecar`本身的`HTTP`的监听地址，是由`dapr-placement`解析出边车地址然后两个边车间沟通的`HTTP`监听地址。`gRPC`的监听地址也可以设置
@@ -10,7 +12,7 @@
 
 ### initial http2 frame from server is not a settings frame:http2.GoAwayFrame
 
-边车配置的 `app-protocol` 是`gRPC`，然后应用中却通过`Dapr HttpClient`去调用`Http`服务，造成问题。
+边车配置的 `app-protocol` 是`gRPC`，而应用实际未以 `gRPC` 方式返回数据时触发。详细排查见 [故障排除](../故障排除.md)。
 
 ### ERR_DIRECT_INVOKE fail to invoke
 

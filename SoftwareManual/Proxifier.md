@@ -1,55 +1,63 @@
+# Proxifier
 
-# TroubleShotting
+> 治理留痕（2026-09-30）：本文件原为 AI 排障回答的直接粘贴（含"Key evidence from your machine""I hope that helps"等口吻），已重写为中性笔记语气；全部技术信息（含 XML 配置证据）原样保留，仅调整叙述结构。
 
+## Troubleshooting
 
-##### 发现有一部分程序无法连接网络，DNS解析失败
+### 部分程序无法连接网络、DNS 解析失败
 
-This is not Tailscale DNS anymore. The main problem is Proxifier fake DNS / remote DNS mode leaking into direct
-  connections.
+> 治理留痕（2026-09-30）：原标题 "TroubleShotting" 拼写已修正为 "Troubleshooting"。
 
-  Key evidence from your machine:
+现象：一部分程序无法连接网络，DNS 解析失败。
 
-  - rawchat.cn resolves to 127.170.10.30
-  - drive.weixin.qq.com resolves to 127.170.10.88
-  - Windows DNS cache contains many 127.170.10.x records with huge TTLs
-  - AAAA records are fd00:696e:6974:6578::...
-  - 696e:6974:6578 decodes to initex, which is Proxifier’s vendor
+排查结论：不是 Tailscale DNS 的问题，根本原因是 Proxifier 的 fake DNS / remote DNS 模式泄漏到了 direct（直连）连接。
 
-  So these are not real public IPs. 127.x.x.x is loopback. Any program connecting to 127.170.10.x is connecting back to
-  your own PC, not the internet.
+本机排查时的关键证据：
 
-  Your Proxifier profile has this enabled:
+- `rawchat.cn` 解析为 `127.170.10.30`
+- `drive.weixin.qq.com` 解析为 `127.170.10.88`
+- Windows DNS 缓存中存在大量 `127.170.10.x` 记录，且 TTL 极长
+- AAAA 记录形如 `fd00:696e:6974:6578::...`，其中 `696e:6974:6578` 十六进制解码为 `initex`，即 Proxifier 的厂商标识
 
-  <ViaProxy enabled="true" />
+这些不是真实的公网 IP：`127.x.x.x` 是回环地址，任何连接 `127.170.10.x` 的程序实际上是在连回本机，而不是访问互联网。
 
-  That means Proxifier is resolving hostnames through proxy and giving apps fake local IPs. This only works when
-  Proxifier later catches the connection and maps the fake IP back to the original hostname. But your profile also has
-  many Direct rules, including:
+当时 Proxifier 配置文件（profile）中开启了：
 
-  <Applications>clash-win64.exe</Applications>
-  <Action type="Direct" />
+```xml
+<ViaProxy enabled="true" />
+```
 
-  So Clash itself is getting fake DNS like api.github.com -> 127.170.10.16, then Proxifier lets Clash connect directly
-  to that fake loopback IP. Result: failure.
+这表示 Proxifier 通过代理解析主机名，并给应用返回假的本地 IP。该机制只有在 Proxifier 后续拦截到连接、并把假 IP 映射回原域名时才能正常工作。但该 profile 同时存在大量 Direct 规则，例如：
 
-  What to do
+```xml
+<Applications>clash-win64.exe</Applications>
+<Action type="Direct" />
+```
 
-  1. Open Proxifier.
-  2. Go to Profile -> Name Resolution.
-  3. Disable Resolve hostnames through proxy / DNS via proxy.
-  4. Save profile.
-  5. Run:
+于是 `Clash` 自身拿到 `api.github.com -> 127.170.10.16` 这样的假 DNS 结果，随后 Proxifier 又按 Direct 规则放任 `Clash` 直连这个假回环 IP——结果连接失败。
 
-  ipconfig /flushdns
+### 解决步骤
 
-  6. Restart Proxifier, Clash, and affected apps.
+1. 打开 Proxifier
+2. 进入 `Profile -> Name Resolution`
+3. 禁用 `Resolve hostnames through proxy` / `DNS via proxy`
+4. 保存 profile
+5. 执行：
 
-  For your setup, the cleaner design is: let normal Windows DNS resolve names, and let Proxifier only proxy selected
-  applications through Clash’s local SOCKS port. Do not use Proxifier global fake DNS while also having direct rules.
+```cmd
+ipconfig /flushdns
+```
 
-  Also add these WeChat-related processes to your direct rule if you want them unproxied:
+6. 重启 Proxifier、`Clash` 及受影响的程序
 
-  wetype_server.exe; wetype_renderer.exe; wetype_update.exe; wxdrive_x64.exe
+### 更合理的配置思路
 
-  Tailscale may have triggered part of the confusion, but the 127.170.10.x and fd00:696e:6974:6578 records point
-  directly to Proxifier’s DNS mode.
+对于本机环境，更干净的设计是：让 Windows 常规 DNS 负责域名解析，Proxifier 只负责把选定的应用程序通过 `Clash` 的本地 SOCKS 端口代理。不要在保留 Direct 规则的同时使用 Proxifier 全局 fake DNS。
+
+如需微信相关进程直连（不走代理），可将下列进程加入 Direct 规则：
+
+```text
+wetype_server.exe; wetype_renderer.exe; wetype_update.exe; wxdrive_x64.exe
+```
+
+`Tailscale` 可能引起了部分混淆，但 `127.170.10.x` 与 `fd00:696e:6974:6578` 记录的来源明确指向 Proxifier 的 DNS 模式。

@@ -1,5 +1,7 @@
 # Clash
 
+> 记录于 Clash for Windows 时期（2023-11 官方归档停更），配置思想仍适用于 Clash Verge 等续作
+
 ## 增加新规则
 
 ### 简便方法（YAML）

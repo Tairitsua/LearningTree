@@ -2,6 +2,8 @@
 
 ## `Vue CLI`
 
+> `npm`/`nvm` 通用命令与 `-g`/`-S`/`-D` 依赖说明见 [Node 与 npm](Node与npm.md)。
+
 ```bash
 npm install -g @vue/cli
 

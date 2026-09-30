@@ -59,7 +59,7 @@
 
 ---
 
-#### ​**​核心概念​**​
+### ​**​核心概念​**​
 
 1. ​**​模型结构​**​：
     
@@ -92,7 +92,7 @@
 
 ---
 
-#### ​**​实用场景与代码示例​**​
+### ​**​实用场景与代码示例​**​
 
 1. ​**​全局属性添加​**​
     
@@ -207,3 +207,29 @@
 - 来源：`FIPS2022`
 - 带泛型契约的 Hub 不要指望通过“直接实现接口”就能透明生效，`IUnifiedContract` 这类泛型合同更稳的做法是放在 `MoHubServer<IUnifiedContract>` 这类基类上。
 - 如果 Hub 既继承带泛型契约的基类，又额外显式实现同一泛型接口，文档生成、代理识别或运行期绑定可能出现不兼容。
+
+#### Handle events for a connection
+
+> 由 [ASP.NET-Core](ASP.NET-Core.md) 的 `SignalR` 章分流并入（2026-09 治理）。
+
+The `SignalR Hubs API` provides the `OnConnectedAsync` and `OnDisconnectedAsync` virtual methods to manage and track connections. Override the `OnConnectedAsync` virtual method to perform actions when a client connects to the hub, such as adding it to a group
+
+#### Send messages from outside a hub
+
+通过`Controller`获取`Hub`进行调用。
+
+已经自动注册：
+
+```csharp
+private readonly IHubContext<NotificationHub> _hubContext;
+
+private readonly IHubContext<ChatHub, IChatClient> _strongChatHubContext;
+```
+
+#### 不同的Hub不同的连接？
+
+[Multiple Hubs | Microsoft Learn](https://docs.microsoft.com/en-us/aspnet/signalr/overview/guide-to-the-api/hubs-api-guide-server#multiple-hubs)
+
+如果使用多`Hub`，需要用`proxy`：
+
+[How to create the Hub Proxy | Microsoft Learn](https://docs.microsoft.com/en-us/aspnet/signalr/overview/guide-to-the-api/hubs-api-guide-net-client#how-to-create-the-hub-proxy)

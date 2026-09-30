@@ -1,6 +1,7 @@
 # AsyncLocal
 
-
+> [!note] 转载来源（2026-09 治理补全）
+> 本文件的「用法简介 / 实现原理 / 的坑 / 避坑指南 / HttpContextAccessor 的实现原理」各节均转载自博客园文章 [.NET AsyncLocal 避坑指南 - 黑洞视界](https://www.cnblogs.com/eventhorizon/p/17170301.html)；文内另有自注与 Monica 源码学习笔记。
 
 ## AsyncLocal 用法简介
 
@@ -40,7 +41,7 @@ class Program
 > AsyncLocal after await FooAsync: Hello World!
 > ```
 
-# AsyncLocal 实现原理
+## AsyncLocal 实现原理
 
 在我之前的博客 [揭秘 .NET 中的 AsyncLocal](https://mp.weixin.qq.com/s?__biz=MzkyOTQyMzg2OA==&mid=2247483796&idx=1&sn=7bed5f6da13431610f2ec4c7e63485f9&chksm=c2088907f57f00116cd084da5c08b9761c8911861e77df9912d8172472612a05cf3e40ba3498&token=1405093735&lang=zh_CN#rd) 中深入介绍了 AsyncLocal 的实现原理，这里只做简单的回顾。
 
@@ -82,7 +83,7 @@ class Program
 
 ![](../../../attachments/Pasted%20image%2020250708105102.png)
 
-# AsyncLocal 的坑
+## AsyncLocal 的坑
 
 有时候我们会在 FooAsync 方法中去修改 AsyncLocal 的值，并希望在 Main 方法在 await FooAsync 之后能够获取到修改后的值，但是实际上这是不可能的。
 
@@ -132,7 +133,7 @@ class Program
 ![](../../../attachments/Pasted%20image%2020250708105117.png)
 
 
-# AsyncLocal 的避坑指南
+## AsyncLocal 的避坑指南
 
 那么我们如何在 FooAsync 方法中修改 AsyncLocal 的值，并且在 Main 方法中获取到修改后的值呢？
 
@@ -195,7 +196,7 @@ class Program
 > ValueAccessor after await FooAsync in Main: B
 > ```
 
-# HttpContextAccessor 的实现原理
+## HttpContextAccessor 的实现原理
 
 我们常用的 `HttpContextAccessor` 通过`HttpContextHolder` 来间接地在 `AsyncLocal` 中存储 `HttpContext。`
 

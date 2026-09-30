@@ -74,4 +74,6 @@ A container is defined by its image as well as any configuration options you pro
 
 `Docker` is written in the **`Go`** programming language and takes advantage of several features of the `Linux` kernel to deliver its functionality. `Docker` uses a technology called **`namespaces`** to provide the isolated workspace called the container. When you run a container, `Docker` creates a set of `namespaces` for that container.
 
-These `namespaces` provide a layer of isolation. Each aspect of a container runs in a separate namespace and its access is limited to that namespace
+These `namespaces` provide a layer of isolation. Each aspect of a container runs in a separate namespace and its access is limited to that namespace.
+
+> 治理留痕（2026-09-30）：原文末句止于 "limited to that namespace"（缺句号，疑似截断）。经比对 `Docker` 官方文档 "The underlying technology" 一节，该句为官方原文完整句，此处仅补齐句号，未增删内容。

@@ -1,5 +1,7 @@
 # ASP.NET Authentication
 
+> 家族主笔记：[ASP.NET-Core](ASP.NET-Core.md)（其「Token机制」一节为本文件的概览，互链去重于 2026-09 治理）。
+
 ## IdentityServer4
 
 ### Swagger认证

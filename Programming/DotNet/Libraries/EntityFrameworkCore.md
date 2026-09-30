@@ -1,206 +1,6 @@
 # Entity Framework Core
 
-## 问题
-### Update
-
-`Update` 方法会将传入的实体的状态设置为 `Modified`，但它只会处理根实体。`EF Core` 不会自动递归地将所有关联的子实体状态也设置为 `Modified`。
-
-> 实测发现会标记`[Own]`的实体为`Modified`  (有时候又没标记了？？)
-
-`Update` 方法会更改所有实体数据为当前状态，所以一般用于`Disconnected Entity`的设置。
-`https://www.learnentityframeworkcore.com/dbcontext/modifying-data`
-
-#### DbUpdateConcurrencyException
-
-`The database operation was expected to affect 1 row(s), but actually affected 0 row(s).`
-
-问题可通过`EFCore`生成的SQL语句进行排查，**可能实际上使用的SQL语句不一定就是真正执行的SQL**（详见Sqlite的问题）。
-1. 一般是因为Update操作时，此数据不存在。此数据可能已经被删除或已经被Update而无法匹配上。
-也有可能是需要Add的操作，错误的使用了Update方法。
-2. 还有就是SQL语句生成了并发检查相关的问题
-
-其实最根本的原因就是生成的Update SQL语句Where条件不匹配，找不到要更新的数据，然后判断EffectRow不一致。
-
-#### AbpDbConcurrencyException
-
-`ConcurrencyStamp`原理是生成SQL语句时带上`ConcurrencyStamp=@old`，然后更新时更新为新的，如果失败证明数据库那边已经被其他修改了（证明版本不一致）。
-
-其他可能：
-1. 因为令牌在`AbpContext` `SaveChanges`时进行修改，若这次进行保存数据库失败，下次再进行修改，则也会抛出该异常。
-2. 一次请求，A微服务需要修改，A调用B，B恰好也去修改状态，这时候A再进行修改则会取出旧令牌匹配。（逻辑上是串行，其实没有问题）
-
-##### 修改令牌
-`GetAsync()`查出的实体实例被修改后，然后又重新多次查询相关实例并客户端侧修改，即使没有使用 `Update` 等方法也会导致并发异常。（这里是同事写了个递归函数）
-初步判断应该是令牌修改是ABP客户端侧判断，而非交给数据库判断，然后多次查询修改时发现令牌不匹配，直接在客户端侧触发并发修改异常。
-
-只读查询功能似乎要额外设置。具体看 `GetAsync()`设置。
-
-##### 多线程触发
-领域事件中`UpdateAsync`产生`AbpDbConcurrencyException`问题。最后发现其实就是多线程并发异常。眼光不能局限在某个服务，这次是事件多次触发，Redis拿到旧的数据导致的
-`https://sourcegraph.com/github.com/abpframework/abp@4f6426add5b69bfb273f601b1ddd9f1f89099a72/-/blob/framework/src/Volo.Abp.EntityFrameworkCore/Volo/Abp/EntityFrameworkCore/AbpDbContext.cs?L347:17&popover=pinned`
-`https://sourcegraph.com/github.com/abpframework/abp@4f6426add5b69bfb273f601b1ddd9f1f89099a72/-/blob/framework/src/Volo.Abp.EntityFrameworkCore/Volo/Abp/EntityFrameworkCore/AbpDbContext.cs?L520:28&popover=pinned`
-
-[处理并发冲突 - EF Core | Microsoft Learn](https://learn.microsoft.com/zh-cn/ef/core/saving/concurrency?tabs=data-annotations)
-
-#### SQLlite相关问题
-
-遇到一个更新用户数据失败问题，随便修改某个字段都会报错。而从`EFCore`的SQL语句也没法看出问题：
-![](../../../attachments/d5c19e6587b245290ad303ae6af8e09.png)
-
-`SQLite`对于`GUID`字段的存储是TEXT，是大小写敏感的，但是C# `GUID`对象是大小写不敏感的，日志默认`ToString`是小写的。又因为`EFCore`对于的`GUID`类型生成的SQL是使用大写生成的，所以匹配不上导致更新失败。
-
-> 不要被程序生成的参数列表误导了，这里的参数日志是格式化的程序guid，不是真正的sql参数
-
-相关issues:
-[SQLite: Lower-case Guid strings don't work in queries · Issue #19651 · dotnet/efcore](https://github.com/dotnet/efcore/issues/19651)
-[Issue with uppercase/lowercase GUID · Issue #25043 · dotnet/efcore](https://github.com/dotnet/efcore/issues/25043)
-
-SQLite解决方案：
-
-```csharp
-builder.Property(p=>p.Id).HasConversion(new GuidToStringConverter());
-```
-
-### A second operation was started on this context instance
-同一个依赖注入的类的多个仓储共用一个`DbContext`（待确认），因此无法同步执行。**注意异步方法的调用，是否都进行了`await`**。注意入口方法是否是`void`忘记等待。
-
-#### Cannot access a disposed context instance.
-
->  A common cause of this error is disposing a context instance that was resolved from dependency injection and then later trying to use the same context instance elsewhere in your application.
-
-Repository中的`DbContext`不可以`using`，直接交由ABP框架管理生命周期。
-```csharp
-await using var context = await _repository.GetDbContextAsync(); //导致错误
-//直接使用
-var context = await _repository.GetDbContextAsync();
-```
-
-### 数据库更新操作异常catch后，在catch块外继续更新别的也会出现异常
-
-实体标记为modified，更新异常后 tracking仍然标记未改变，SaveChanges时仍会导致异常。
-
-```cs
-
-```
-
-
-
-## ABP仓储层
-
-### UpdateManyAsync
-
-如果开启跟踪，`UpdateMany`不论怎么传入都将将所有改变的实体进行保存。
-
-```csharp
-var list = repo.GetQueryableAsync(); //.. where .. ToList(); 假设返回100个实体
-list.Foreach(p=>p.Name = "XX");
-repo.UpdateManyAsync(list.Take(20));
-```
-
-其中，80个实体将采用如下
-```sql
-- 其中80个
-Update XX SET Name = "XX"
-
-- 其中20个是完整的语句
-Update Column1 ... SET Column1...
-
-```
-
-ABP的`UpdateMany`的实现是通过
-```csharp
-dbContext.Set<TEntity>().UpdateRange(); 
-```
-批量设置Entity的State为`Modified`。性能较更改跟踪可能更慢。
-
-### GetDbContextAsync
-在同一个上下文获取出来的似乎是同一个`DbContext`
-所以`SaveChanges`也可以有效。如上面的例子
-```csharp
-var list = repo.GetQueryableAsync(); //.. where .. ToList(); 假设返回100个实体
-list.Foreach(p=>p.Name = "XX");
-var context = repo.GetDbContextAsync();
-context.SaveChanges(); //可以成功保存。
-```
-
-## 外键问题
-
-### 自动生成了Shadow state property
-
-在配置一对多关系的时候，误写成了如下配置：
-```csharp
-builder.HasOne<Role>().WithMany().HasForeignKey(p => p.GroupId);
-```
-导致会自动生成`RoleId`列。
-应写为：
-```csharp
-builder.HasOne(p=>p.Role).WithMany().HasForeignKey(p => p.GroupId);
-```
-
-### 更新导航属性
-
-[Changing Foreign Keys and Navigations - EF Core | Microsoft Learn](https://learn.microsoft.com/en-us/ef/core/change-tracking/relationship-changes)
-
-因为`EFCore`提供两种方式更新，一种是用导航属性，如`Reference navigation`及`Collection navigation`，即一个是对一的，一个是对多的实体。另外一种方式是操作外键，这种需要显式定义外键并配置才能操作。
-
-只用一种方式更新关系：
-
-> Do not write code to manipulate all navigations and FK values each time a relationship changes. Such code is more complicated and must ensure consistent changes to foreign keys and navigations in every case. If possible, just manipulate a single navigation, or maybe both navigations. If needed, just manipulate FK values. Avoid manipulating both navigations and FK values.
-
-## 继承关系
-在`EF Core`中，当实体类之间存在继承关系并使用`TPH`（`Table-Per-Hierarchy`）映射策略时，会自动生成`Discriminator`列。该列用于区分同一表中不同类型的实体，该列的值表示每一行对应的具体实体类型（如基类名或子类名）。
-继承关系有多种映射策略，如`Table-Per-Hierarchy`，`Table-Per-Type`等。
-
-如果发现自动生成了`Discriminator`列，一般是因为将基类和子类添加到了当前`DbContext`，如`DbSet<BaseEntity>`，或通过`IEntityTypeConfiguration`自动注册进来的实体。
-
-## 更新
-
-### ChangeTracker
-
-`ChangeTracker`判断更新的原理是在调用`ChangeTracker.Entries()`（内部调用了`ChangeTracker.DetectChanges`）时会与`Originally`值进行对比，如果值不一致才会刷新状态是`Modified`，否则将还是`UnChanged`。
-只有开启了跟踪才会变为`Unchanged`状态，也就是正在跟踪，此时的状态进行修改属性会记录下`Original`值。否则是为`Detached`状态，不会进行变化。但有其他方式将`Detached`状态转为其他跟踪状态（待补充），如`Remove`、`Update`等操作。
-
-在实现CDC时发现删除操作未能成功执行（因为CDC是将当前状态要更新到数据库，当前状态已经是`IsDeleted`），`ChangeTracker`发现最后因为软删除置为`Unchanged`后`SaveChanges`时会调用一次`ChangeTracker.Entries()`计算值是否变化， 计算结果为`Unchanged`。
-
-```csharp
-public override async Task DeleteManyAsync(IEnumerable<TEntity> entities, bool autoSave = false, CancellationToken cancellationToken = default)
-{
-    var entityArray = entities.ToArray();
-    if (entityArray.IsNullOrEmptySet())
-    {
-        return;
-    }
-    
-    var dbContext = await GetDbContextAsync();
-
-    dbContext.RemoveRange(entityArray.Select(x => x));
-
-    if (autoSave)
-    {
-        await dbContext.SaveChangesAsync(cancellationToken);
-    }
-}
-
-protected virtual void ApplyConceptsForDeletedEntity(EntityEntry entry)
-{
-    if (entry.Entity is not IHasSoftDelete entity)
-    {
-        return;
-    }
-
-    entry.State = EntityState.Unchanged;
-    entity.IsDeleted = true;
-
-    //ObjectHelper.TrySetProperty(entry.Entity.As<IHasSoftDelete>(), x => x.IsDeleted, () => true);
-    SetDeletionAuditProperties(entry);
-}
-```
-
-实际上还可以使用`entry.Reload();`来计算当前状态，原理是先从数据库重新刷新当前实体值，变为`Unchanged`跟踪状态，然后进一步修改`IsDeleted`触发计算为`Unchanged`。但这里采用直接置`entry.State = EntityState.Unchanged`，可以增强性能，但对于CDC场景会失效，因为本身`Originally`就是`IsDeleted`，最终计算还是`Unchanged`，导致无法触发更新。这种软删除的场景可以转为使用`Update`。
-
-还有`Attach()`方法可以标记实体为`Unchanged`状态，即认为当前实体已经在数据库存在（`Originally`标记当前值），然后后续修改都可以被跟踪为`Modified`，就仅更新已更新的字段。
-
-# 基础知识
+> 2026-09 治理拆分：问题排查类内容（`Update`/并发异常/上下文生命周期/ABP 仓储实践/外键/继承/`ChangeTracker`/模型映射异常）已拆至 [EntityFrameworkCore-问题排查](EntityFrameworkCore-问题排查.md)，本文件保留基础知识。
 
 `ORM`（`Object Relational Mapping`）框架
 
@@ -208,7 +8,7 @@ protected virtual void ApplyConceptsForDeletedEntity(EntityEntry entry)
 
 ## 依赖注入
 
-#### DbContext依赖注入
+### DbContext依赖注入
 
 [dbcontext-factory-improvements](https://learn.microsoft.com/en-us/ef/core/what-is-new/ef-core-6.0/whatsnew#dbcontext-factory-improvements)
 
@@ -267,7 +67,7 @@ By convention, all public properties with a getter and a setter will be included
 以上两图两者等价，择一配置。
 
 | Fluent API                                                                                              | 数据注释                                                  | 说明                                                                                                                                                                                                                                                                                    |
-| ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | IsRequired()                                                                                            | `[Required]`                                            |                                                                                                                                                                                                                                                                                       |
 | `.HasKey(c => c.xxxxx)`                                                                                  | `[Key]`                                                 | 此键映射到关系数据库中主键的概念                                                                                                                                                                                                                                                                      |
 | `.HasKey(c => new { c.xxx1, c.xxx2 }`                                                                    | 无                                                     | 组合键，只能用`fluent api`配置。                                                                                                                                                                                                                                                                |
@@ -353,7 +153,7 @@ EFCore的`Single`、`Update`、`Delete`等等都是通过设定的候选键，�
 
 Starting with EF Core 3.0, if the backing field for a property is known, then EF Core will always read and write that property using the backing field. This could cause an application break if the application is relying on additional behavior coded into the getter or setter methods.
 
-即，如果有Name这个property且有_name，会自动的找到它的_name这个Backing Field（需要满足条件才可以自动找到，<https://docs.microsoft.com/en-us/ef/core/modeling/backing-field>），然后读写它而不是通过property的get或者set property。所以如果需要property的读写逻辑，则需要
+即，如果有Name这个property且有_name，会自动的找到它的_name这个Backing Field（需要满足条件才可以自动找到，[Backing Fields - EF Core | Microsoft Learn](https://docs.microsoft.com/en-us/ef/core/modeling/backing-field)），然后读写它而不是通过property的get或者set property。所以如果需要property的读写逻辑，则需要
 
 ```csharp
 modelBuilder.UsePropertyAccessMode(PropertyAccessMode.PreferFieldDuringConstruction);
@@ -387,7 +187,7 @@ Scaffold-DbContext -Connection "Server=127.0.0.1;User Id=root;Password=root;Data
 
 连接字段是`connection`
 
-详细见：<https://docs.microsoft.com/zh-cn/ef/core/miscellaneous/cli/powershell>
+详细见：[EF Core 工具参考 - Package Manager Console | Microsoft Learn](https://docs.microsoft.com/zh-cn/ef/core/miscellaneous/cli/powershell)
 
 框架默认具有公共getter和setter的属性会被包括在模型中，可以用NotMapped排除
 
@@ -404,8 +204,8 @@ public class Blog
 
 ### Migration
 | Terminal | 操作 | 解释 |
-|------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `dotnet ef migrations add <Alter Operation Name>` | `Add-Migration <Alter Operation Name>` | 每次操作变动需要Add Migration，相当于git中的commit。 `-Project Project.Name` 来指定Target project，当然可以直接在Default Project中选择。Target project实际上是Migration所在Assembly，默认是在Context所在Assembly下，可以通过`DbContextOptionsBuilder`中设置`MigrationsAssembly`，分离Migration到其他项目（Migration所在项目必须是Class Library） 似乎第一次Migration无法识别，需要先在Context项目上生成一次，然后直接复制Migration文件到Migration项目。然后也可以随意更改生成的namespace，下次migrate会自动识别。 默认需要一个启动项目，先获取到Context对象，然后进行模型对比映射，得出变更，进而生成Migration文件。 启动项目是Console或asp.net core等项目，可以通过自定义一个启动入口类，管理启动项目获取到的Context对象是如何构造的：`IDesignTimeDbContextFactory<FlightContext>`  至于terminal中，需要先移动到启动的项目文件夹下，然后使用`--project`来指定migration项目 |
+|------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `dotnet ef migrations add <Alter Operation Name>` | `Add-Migration <Alter Operation Name>` | 每次操作变动需要Add Migration，相当于git中的commit。 `-Project Project.Name` 来指定Target project，当然可以直接在Default Project中选择。Target project实际上是Migration所在Assembly，默认是在Context所在Assembly下，可以通过`DbContextOptionsBuilder`中设置`MigrationsAssembly`，分离Migration到其他项目（Migration所在项目必须是Class Library） 似乎第一次Migration无法识别，需要先在Context项目上生成一次，然后直接复制Migration文件到Migration项目。然后也可以随意更改生成的namespace，下次migrate会自动识别。 默认需要一个启动项目，先获取到Context对象，然后进行模型对比映射，得出变更，进而生成Migration文件。 启动项目是Console或asp.net core等项目，可以通过自定义一个启动入口类，管理启动项目获取到的Context对象是如何构造的：`IDesignTimeDbContextFactory<FlightContext>`  至于terminal中的，需要先移动到启动的项目文件夹下，然后使用`--project`来指定migration项目 |
 | `dotnet ef database update` | `Update-Database` | 操作变动后需要同步到数据库，相当于git中的push |
 | | `Update-Database [ToSpecificState]` | 可以将数据库回滚到特定的Migration状态 |
 | `dotnet ef migrations remove` | `Remove-Migration` | 移除最新一次的Add Migration操作 |
@@ -413,10 +213,6 @@ public class Blog
 | `dotnet ef migrations script AddNewTables AddAuditTable` | `Script-Migration [AddNewTables] [AddAuditTable]` | 生成从指定migration状态到指定migration状态的修改SQL语句 |
 | `dotnet ef migrations list` | `Get-Migration` | list all existing migrations |
 | `dotnet ef dbcontext scaffold "Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=Chinook" Microsoft.EntityFrameworkCore.SqlServer` | `Scaffold-DbContext 'Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=Chinook' Microsoft.EntityFrameworkCore.SqlServer` | Reverse Engineering 反向工程 DB First  `-Tables Artist, Album`可以指定仅反向给定表名  `-Force` 需要重新进行反向工程  `-Context` 指定Context |
-
-
-
-
 
 
 ## 数据库连接池 (以下待测试)
@@ -429,12 +225,12 @@ public class Blog
 #### ​**​1. 连接创建阶段​**​
 
 - ​**​`ConnectionCreating`​**​
-    
+
     - ​**​触发时机​**​：EF Core 即将创建 `DbConnection` 对象时（仅当未显式提供连接时）
     - ​**​可操作​**​：可修改或替换连接创建逻辑（通过 `InterceptionResult<DbConnection>`）
     - ​**​典型场景​**​：动态生成连接字符串、注入代理连接对象
 - ​**​`ConnectionCreated`​**​
-    
+
     - ​**​触发时机​**​：`DbConnection` 实例创建完成后
     - ​**​可操作​**​：对新建连接进行初始化（如设置超时时间）
 
@@ -443,14 +239,14 @@ public class Blog
 #### ​**​2. 连接打开阶段​**​
 
 - ​**​`ConnectionOpening`（同步）/ `ConnectionOpeningAsync`（异步）​**​
-    
+
     - ​**​触发时机​**​：在 `DbConnection.Open()` 执行前
     - ​**​关键控制​**​：
         - 通过 `InterceptionResult.Suppress()` ​**​阻止默认打开操作​**​
         - 返回修改后的 `InterceptionResult` 影响 EF Core 行为
     - ​**​典型场景​**​：实现自定义连接池、链路追踪
 - ​**​`ConnectionOpened`（同步）/ `ConnectionOpenedAsync`（异步）​**​
-    
+
     - ​**​触发时机​**​：连接​**​物理打开完成后​**​（TCP 连接已建立）
     - ​**​可操作​**​：记录连接打开时间、更新状态监控
 
@@ -459,14 +255,14 @@ public class Blog
 #### ​**​3. 连接关闭阶段​**​
 
 - ​**​`ConnectionClosing`（同步）/ `ConnectionClosingAsync`（异步）​**​
-    
+
     - ​**​触发时机​**​：在 `DbConnection.Close()` 执行前
     - ​**​关键控制​**​：
         - 可通过 `InterceptionResult.Suppress()` ​**​阻止默认关闭操作​**​
         - 需确保正确处理资源释放
     - ​**​典型场景​**​：维护长连接、连接复用策略
 - ​**​`ConnectionClosed`（同步）/ `ConnectionClosedAsync`（异步）​**​
-    
+
     - ​**​触发时机​**​：连接​**​物理关闭完成后​**​（TCP 连接已断开）
     - ​**​注意​**​：此事件仅表示​**​底层连接关闭​**​，连接对象可能仍未释放
 
@@ -475,13 +271,13 @@ public class Blog
 #### ​**​4. 连接释放阶段​**​
 
 - ​**​`ConnectionDisposing`（同步）/ `ConnectionDisposingAsync`（异步）​**​
-    
+
     - ​**​触发时机​**​：在 `DbConnection.Dispose()` 执行前
     - ​**​关键区别​**​：
         - `Dispose()` 会​**​完全销毁连接对象​**​（非物理关闭，而是对象生命周期结束）
         - 拦截后可取消释放（例如实现对象池）
 - ​**​`ConnectionDisposed`（同步）/ `ConnectionDisposedAsync`（异步）​**​
-    
+
     - ​**​触发时机​**​：连接对象​**​完成释放后​**​
     - ​**​典型场景​**​：资源泄露检测、对象池回收
 
@@ -490,6 +286,7 @@ public class Blog
 #### ​**​5. 异常处理事件​**​
 
 - ​**​`ConnectionFailed`（同步）/ `ConnectionFailedAsync`（异步）​**​
+
     - ​**​触发时机​**​：连接打开或关闭过程中​**​抛出未处理异常​**​时
     - ​**​典型用途​**​：记录错误日志、重试策略
 
@@ -498,17 +295,17 @@ public class Blog
 ### 🔁 连接池与事件的关系
 
 1. ​**​连接对象 vs 物理连接​**​
-    
+
     - 事件中的 `DbConnection` 是​**​逻辑连接对象​**​
     - 底层物理连接由 ADO.NET 连接池管理（透明于 EF Core）
 2. ​**​连接池行为​**​
-    
+
     - 当 `ConnectionClosed` 触发时：
         - ​**​物理连接归还连接池​**​（未销毁，可复用）
     - 当 `ConnectionDisposed` 触发时：
         - ​**​连接对象被销毁​**​，但底层物理连接仍可能驻留池中
 3. ​**​性能优化关键​**​
-    
+
     - 高频创建/释放 `DbContext` 时：
         - 实际​**​重用池中的物理连接​**​（通过 `ConnectionClosed`→`ConnectionOpening` 循环）
         - 避免 `ConnectionCreating` 和 `ConnectionDisposing` 高频触发

@@ -1,5 +1,7 @@
 # Aspire
 
+> 治理留痕（2026-09-30）：HTTP/2 代理问题与 `CloudNative/Dapr/故障排除.md` 的同类条目互链（环境不同，各自保留）。
+
 ## 问题排查
 
 ### 启动出现Requesting HTTP version 2.0 
@@ -7,6 +9,8 @@
 一般是由于电脑使用了环境变量 `HTTP_PROXY` 以及 `HTTPS_PROXY` 导致的，`.NET HTTP Client`会使用此环境变量作为代理。Alternatively, set NO_PROXY="localhost,127.0.0.1" in environment. Restart the app.
 
 > 清除环境变量后需要重启IDE生效
+
+> 同类问题（`Dapr` 边车场景、环境不同）另见 [Dapr 故障排除](../../../CloudNative/Dapr/故障排除.md)。
 
 ```log
 fail: Aspire.Hosting.Dashboard.ServiceClient.DashboardClient[0]

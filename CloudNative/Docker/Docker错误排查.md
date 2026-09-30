@@ -1,5 +1,7 @@
 # Docker错误排查
 
+> 治理留痕（2026-09-30）：笔误修正——`/user/sbin/init` → `/usr/sbin/init`；文末 Docker-in-Docker 日志代码块补语言标注 `text`。
+
 ## COPY找不到文件
 
 首先要弄清楚 `context` 原理：
@@ -59,7 +61,7 @@ centos无法使用systemctl等，需要创建容器的时候，使用特权模�
 # 创建容器：
 docker run -d -it --name xxxx --privileged=true {Image ID} /sbin/init
 
-# 还有说是/user/sbin/init，不知道是哪个
+# 还有说是/usr/sbin/init，不知道是哪个
 
 # 进入容器：
 docker exec -it centos7 /bin/bash
@@ -70,7 +72,7 @@ docker exec -it centos7 /bin/bash
 ## Docker-in-Docker问题，daemon时不时挂掉
 搭建jenkins时直接使用jenkins容器中的docker，导致进行docker build等推送时常出现`ERROR: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?`的错误
 分析日志后发现可能是由于存储驱动问题，回退到`vfs`这种不稳定的驱动，会导致镜像构建和容器运行时性能低下、磁盘占用暴增，最终可能因资源不足引发连锁问题。
-```
+```text
 time="2025-04-01T09:09:02.013354925+08:00" level=error msg="failed to mount overlay: invalid argument" storage-driver=overlay2
 time="2025-04-01T09:09:02.013431016+08:00" level=error msg="exec: \"fuse-overlayfs\": executable file not found in $PATH" storage-driver=fuse-overlayfs
 time="2025-04-01T09:09:02.223953127+08:00" level=info msg="Docker daemon" storage-driver=vfs

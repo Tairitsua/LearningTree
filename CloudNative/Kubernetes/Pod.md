@@ -1,5 +1,7 @@
 # Pod
 
+> 治理留痕（2026-09-30）：事实修正——原文"`Service` 管理 `Pod` 的 `IP`，`Pod` 挂掉 `IP` 也不会变"有误，改为"Pod 重建后 IP 会变化，稳定访问靠 `Service`"；文末待办残句"下周准备继续跟进一下"已删除。
+
 `Pod` 是对容器化的 `Application` 的抽象，不仅仅是指代 `docker`，可以替换为任何一种容器技术。只需要遵循 `Container Runtime Interface (CRI)` 实现和 `OCI` 规范。
 
 `OCI` stands for the [Open Container Initiative](https://opencontainers.org/about/overview/), which standardized many of the interfaces between container tools and technologies. They maintain a standard specification for packaging container images (`OCI image-spec`) and running containers (`OCI runtime-spec`). They also maintain an actual implementation of the `runtime-spec` in the form of [runc](https://github.com/opencontainers/runc), which is the underlying default runtime for both [containerd](https://containerd.io/) and [CRI-O](https://cri-o.io/). The `CRI` builds on these low-level specifications to provide an end-to-end standard for managing containers.
@@ -33,7 +35,7 @@ spec:
 
 ## Service
 
-一个 `Pod` 有一个自己的 `IP Address`，一个 `Pod` 搭配一个 `Service`，`Service` 管理 `Pod` 的 `IP`，`Pod` 挂掉 `IP` 也不会变。`Service` 分 `Internal service` 和 `external service`，即可被外部访问以及不可被外部访问的。
+一个 `Pod` 有一个自己的 `IP Address`，一个 `Pod` 搭配一个 `Service`，`Service` 管理 `Pod` 的 `IP`——`Pod` 重建后 `IP` 会变化，稳定访问靠 `Service`。`Service` 分 `Internal service` 和 `external service`，即可被外部访问以及不可被外部访问的。
 
 `Pod` 之间通过 `Service` 进行通信。
 
@@ -79,4 +81,4 @@ securityContext:
 实际上 `kubernetes` 本身提供了 `volumeMounts.subPath` 属性用于挂载单个文件而不是整个目录。
 #### 问题
 - 如果使用 `ConfigMap` 的 `subPath` 挂载为 `Container` 的 `Volume`，`Kubernetes` 不会做自动热更新
-- `ConfigMap` 哪怕不使用 `subPath` 的挂载方式 `C#` 文件修改监听功能也没有触发，`Golang` 的正常，怀疑可能和自己的实现有关，因为还有其他事情没有继续跟进，下周准备继续跟进一下。
+- `ConfigMap` 哪怕不使用 `subPath` 的挂载方式 `C#` 文件修改监听功能也没有触发，`Golang` 的正常，怀疑可能和自己的实现有关，因为还有其他事情没有继续跟进。

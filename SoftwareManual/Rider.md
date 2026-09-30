@@ -1,5 +1,7 @@
 # Rider
 
+> 治理留痕（2026-09-30）：拼写 "Verison Control" 已修正为 "Version Control"；"调试 SourceGenerator" 节与 [Visual Studio](VisualStudio.md) 互加链接。
+
 
 自动换行： Soft Wrap
 
@@ -8,7 +10,7 @@
 - Select File in Project View (In Other - Bookmarks)
 
 
-## Verison Control
+## Version Control
 
 开启 `Enable Staging area` 
 
@@ -37,7 +39,7 @@
 
 ```
 
-有个缺陷是如果SourceGenerator会导致编译不通过，那还是只能回退到使用 `Visual Studio` 用 `Debug.Launch` 的方式调试。[Can not debug code generator when target project does not build : RIDER-118936](https://youtrack.jetbrains.com/issue/RIDER-118936/Can-not-debug-code-generator-when-target-project-does-not-build)
+有个缺陷是如果SourceGenerator会导致编译不通过，那还是只能回退到使用 `Visual Studio` 用 `Debug.Launch` 的方式调试（另见 [Visual Studio](VisualStudio.md)）。[Can not debug code generator when target project does not build : RIDER-118936](https://youtrack.jetbrains.com/issue/RIDER-118936/Can-not-debug-code-generator-when-target-project-does-not-build)
 
 
 ### SourceGenerator控制生成目录

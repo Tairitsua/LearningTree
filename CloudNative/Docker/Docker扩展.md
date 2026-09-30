@@ -1,6 +1,6 @@
 # Docker扩展
 
-## Docker File
+> 治理留痕（2026-09-30）：① 删除空的 `## Docker File` 章节及末尾 Compose 命令表 5 行空占位（连同仅剩表头的空表一并清理）；② 隐私脱敏：MSSQL 示例密码已替换为 `<已脱敏>`（原值见 `_governance/migration-log-cloudnative.md`）。
 
 ## Docker Network
 
@@ -78,7 +78,7 @@ windows下，也可以使用Unix-style path
 | `volume ls` | 列出拥有的volume对象 | |
 | `volume inspect <volume name>` | 查看volume对象信息 | Mountpoint就是实际映射到的url，具体与driver有关。 当driver是local，即挂载到宿主机（windows的是在docker VM上）。 |
 | `volume prune` | 移除未使用的Volume | As long as volumes are associated with a container (either running or not), they cannot be removed. |
-| `docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=passw0rd1!' -p 1433:1433 –name sql2019 -v sql_volume:/var/opt/mssql -d mcr.microsoft.com/mssql/server:2019-GA-ubuntu-16.04` | 其中`-v`是设置容器中`/var/opt/mssql`目录挂载到sql_volume，即容器对于该目录任何read-write操作将会直接作用在sql_volume上。 | `-v 名字(docker volumn)或目录(bind mounts):容器目录 ` 比较容易使用 <br />官方建议使用`--mount`  `--mount type=bind,source=/tmp,target=/usr` 最大区别在于显式与隐式。 |
+| `docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=<已脱敏>' -p 1433:1433 –name sql2019 -v sql_volume:/var/opt/mssql -d mcr.microsoft.com/mssql/server:2019-GA-ubuntu-16.04` | 其中`-v`是设置容器中`/var/opt/mssql`目录挂载到sql_volume，即容器对于该目录任何read-write操作将会直接作用在sql_volume上。 | `-v 名字(docker volumn)或目录(bind mounts):容器目录 ` 比较容易使用 <br />官方建议使用`--mount`  `--mount type=bind,source=/tmp,target=/usr` 最大区别在于显式与隐式。 |
 
 ## Docker Compose
 
@@ -123,13 +123,4 @@ NAMESPACE=fips
 
 其中Relative Path在windows中，使用`./xxx`开头，实际上是相对于指定的`docker-compose.yaml`文件所在文件夹中。
 
-### 命令
-
-| 命令 | 含义 | 备注 |
-|------|------|------|
-|      |      |      |
-|      |      |      |
-|      |      |      |
-|      |      |      |
-|      |      |      |
 |      |      |      |

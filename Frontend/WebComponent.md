@@ -86,10 +86,4 @@ customElements.define('my-button', MyCustomButton);
 
 `webpack`可以将各种前端框架的源码（需要支持`webpack`的），打包为`dist`文件夹，然后直接放到`nginx`等web服务器`wwwroot`文件夹下进行host即部署完毕。
 
-## 设计
-
-### Diagrams.net
-
-**Diagrams.net** (formerly `draw.io`) is a powerfull app designed to [create diagrams and flowcharts](https://www.diagrams.net/).
-
-[Diagrams.net - Adding icons (Font Awesome, Twemoji)](https://roneo.org/en/diagrams.net-adding-icons-font-awesome-twemoji)
+> 原"## 设计 / Diagrams.net"一节（离题内容）已于 2026-09-30 治理时移至 [README](README.md) 的"相关工具"行，此处不再保留。

@@ -1,5 +1,14 @@
 # ASP.NET Core
 
+> [!info] 家族导航
+> - **主笔记（本文件）**：架构、管道、`Configuration`、RESTful API、`Swagger`、`gRPC`、`Blazor` 概览
+> - [ASP.NET-Core-接口](ASP.NET-Core-接口.md)：请求参数绑定、Minimal API 等接口层细节
+> - [ASP.NET-Core-进阶](ASP.NET-Core-进阶.md)：`ApplicationPartManager`、Application Model、`SignalR` 进阶细节
+> - [ASP.NET-Core-认证](ASP.NET-Core-认证.md)：`OAuth2.0`/`JWT`/`OIDC`、认证授权体系、Swagger 认证
+> - [DependencyInjection](DependencyInjection.md)：`IoC`/DI 生命周期、第三方容器（`Autofac`）、AOP（`Filter`）
+> - [Configurations](Configurations.md)：`Options Pattern` 与配置绑定细节
+> - [环境部署](../环境部署.md)：部署（局域网/公网/WebAssembly/HTTPS）与发布
+
 ## MVC架构
 
 ### URL结构
@@ -18,7 +27,8 @@
 
 `HTTP`协议是无状态的协议，所以服务端需要记录用户的状态时，就需要用某种机制来识具体的用户，这个机制就是`Session`，标识用户并跟踪，一般放在服务器内存，使用缓存服务等。运行依赖`session_id`，然后`id`在`cookies`中，若是`cookies`禁用，`session`失效，但会使用`url`重写实现传递。`JSESSIONID`只是`tomcat`的对`sessionid`的叫法
 
-> 现在过时，现在一般都使用`access_token`等，类似`session_id`
+> [!note] 2026-09 治理修订
+> 原文自注"现在过时"。明确表述：传统服务端 `Session` 方案在现代无状态/分布式架构中已较少直接使用，更常见的做法是使用 `token` 机制（如 `JWT` 形式的 `access_token`）标识用户，其作用与 `session_id` 类似。详见 [Token机制](#token机制) 与 [ASP.NET-Core-认证](ASP.NET-Core-认证.md)。
 
 `ASP.NET`中是在`HttpContext`中，但已经不是标配，不能直接使用，需要进行配置：添加中间件以及服务实例
 
@@ -34,6 +44,8 @@
 ![](../../../attachments/3959373c4405b4c5c8b5c8868c0f2ff8.png)
 
 用户先通过登陆获取`token`，然后每次请求都带有`token`，请求到达`Gateway`之后会直接通过一种加密验证机制验证`token`是否有效，所以`Gateway`能够实现鉴权授权的效果。
+
+`OAuth2.0`/`JWT`/`OIDC` 等认证授权细节见 [ASP.NET-Core-认证](ASP.NET-Core-认证.md)。
 
 ## 控制台程序为什么变成了网站（原理）
 
@@ -53,9 +65,12 @@
 
 ### Startup类
 
+> [!note] 时效说明
+> `Startup`/`Configure`/`ConfigureServices` 为 .NET 6 之前的写法，此后用 minimal hosting（`Program.cs` 顶层语句直接使用 `builder`/`WebApplication`）；下述管道与注册原理仍然适用。
+
 是`Kestrel`服务器和`MVC`的关联配置。
 
-`Configure`方法是配置`Http`请求的`pipeline`（管道），即`Http`请求的处理过程。即使`Configure`里面的所有中间件服务注释，仍然会成功运行，响应404，因为源码中的`ApplicatinBuilder`管道`Build`里面写了一个默认中间件404。
+`Configure`方法是配置`Http`请求的`pipeline`（管道），即`Http`请求的处理过程。即使`Configure`里面的所有中间件服务注释，仍然会成功运行，响应404，因为源码中的`ApplicationBuilder`管道`Build`里面写了一个默认中间件404。
 
 若只留一个：
 
@@ -99,7 +114,7 @@
 
 ### 使用Configuration
 
-<https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?view=aspnetcore-7.0>
+[Configuration in ASP.NET Core | Microsoft Learn](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?view=aspnetcore-7.0)
 
 `builder.Configuration`实际上是按下图优先度读取配置（越前面的优先度越高）：
 
@@ -134,6 +149,8 @@ builder.Services.Configure<FooSettings>(builder.Configuration);
 
 `IOptionsMonitor`则会即时读取配置。
 
+Options 三兄弟（`IOptions`/`IOptionsSnapshot`/`IOptionsMonitor`）与配置绑定的更多细节见 [Configurations](Configurations.md)。
+
 通用读环境变量：
 
 `Environment.GetEnvironmentVariable`
@@ -155,116 +172,13 @@ IConfigurationRoot config = new ConfigurationBuilder()
 .Build();
 ```
 
-### 使用内置IOC
+### 依赖注入（IoC）
 
-抽象 实现 注册 使用
+抽象（写一个接口）、实现（实现这个接口）、注册（在容器中注册对接口服务的实现）、使用（在 `controller` 中依赖注入，即写一个 `private readonly` 接口成员，在构造函数里增加一个接口实例参数，然后赋值）。要用`IoC`最好全程都用`IoC` (Inversion of Control)，好处是解耦、屏蔽对象实现细节、生命周期管理与`AOP`。
 
-要用`IoC`最好全程都用`IoC` (Inversion of Control)
+`ASP.NET Core`中的内置`IoC`容器是`Microsoft.Extensions.DependencyInjection`中的`ServiceCollection`，可以单独使用，但功能有一定局限性（比如只支持构造函数注入），可以换用第三方容器比如`autofac`。
 
-抽象是写一个接口，实现是实现这个接口。注册是在`Startup`的`ConfigureServices`里注册对接口服务的实现，然后在`controller`中依赖注入，即写一个`private readonly`接口成员，在构造函数里增加一个接口实例参数，然后赋值。
-
-好处：
-
-1. 去掉对于细节的依赖，方便拓展，减小影响范围，只需要改`startup`文件换一个接口实现实例，甚至可以转移到对配置文件的依赖，只需要修改配置文件。（解耦）
-2. 假如没有`IoC`，一种服务如果依赖于其他的服务，比如服务D构造需要服务C，服务C构造需要服务B，服务B构造需要服务A，而且要知道全部实例细节。工程量巨大。但是`IoC`能够屏蔽细节，对象依赖注入（`DI`），要服务D就直接拿服务D，不必关心如何构造。 （屏蔽对象的实现细节）
-3. 生命周期管理、`AOP`面向切面编程（`Aspect Oriented Programming`）
-
-`ASP.NET Core`中的内置`IoC`容器是`Microsoft.Externsions.DependencyInjection`中的`ServiceCollection`，可以单独使用，但功能有一定局限性（比如只支持构造函数注入），可以换用第三方容器比如`autofac`。
-
-三种生命周期：
-
-- **`AddTransient`**：瞬时生命周期，每次使用都是会构造一个全新的实例。
-
-- **`AddSingleton`**：单例，进程唯一实例（仅适用于需要单例的比如链接池、配置文件等，摒弃传统单例，即能够用`IOC`容器实现单例就不要自己写了）
-
-- **`AddScoped`**：作用域单例，实际上是`container`对象`.CreateScope()`创建出来的一个"子容器"，所以作用域不同。同一个容器就同一个实例。不过在`ASP.NET Core`中，变成了一个请求一个实例，不同请求不同实例，因为一次请求底层构造了一个子容器实例，一次请求的意思就是一次`http`请求，第二次发同一个请求也算不同请求了。一次请求相同的情况是注册的服务用到多次的时候，注入进去的服务是同一个实例。
-
-![](../../../attachments/fc35966aaa4228489b7f58a18df9583d.png)
-
-#### 手动获取依赖
-[Why You Shouldn't Call BuildServiceProvider in .NET Development | by Damien Vande Kerckhove | Medium](https://medium.com/@damien.vandekerckhove/why-you-shouldnt-call-buildserviceprovider-in-net-development-8e25f680d529)
-单例不可提前获取
-
-[ServiceProviderServiceExtensions.GetService\<T\>(IServiceProvider) Method (Microsoft.Extensions.DependencyInjection) | Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.dependencyinjection.serviceproviderserviceextensions.getservice?view=dotnet-plat-ext-7.0)
-
-[c# - Resolving instances with ASP.NET Core DI from within ConfigureServices - Stack Overflow](https://stackoverflow.com/questions/32459670/resolving-instances-with-asp-net-core-di-from-within-configureservices)
-
-![](../../../attachments/52aaeffa8b35a671feeb2d02d37675c3.png)
-
-#### 使用第三方IOC容器（例 Autofac）
-
-在`ASP.NET Core`的`Program`入口中的`CreateHostBuilder`中使用`UseServiceProviderFactory`替换`IOC`容器，然后`Startup`中的`ConfigureService`可以不再使用，而是另外写一个新的，比如`autofac`容器就可以写：`ConfigureContainer(ContainerBuilder xxx)`。
-
-##### 注册服务并创建容器
-
-通过创建 `ContainerBuilder` 来注册组件(类)并且告诉容器哪些组件暴露了哪些服务（接口）。
-
-```csharp
-//在委托注册中使用 As<T>()，会明确哪个接口服务使用了哪个注册，并成为了LimitType（只能用As过的服务）。另外其实autofac自动会推断注册的服务支持哪些，As就会限制死（？未验证）
-builder.RegisterType<ConsoleLogger>().AsSelf().As<ILogger>().As<IXXXX>;//通过类型注册一个或多个服务，AsSelf是暴露自身的服务（即自身）
-builder.RegisterType(typeof(ConfigReader));//是使用依赖注入来构建这个类（比如这个类构造函数有接口用于注入，autofac会去查找容器内注册过的服务用于生成这个ConfigReader）
-//组件生命周期
-builder.RegisterType<XXX>().InstancePerDependency();//这是默认选项，每次需要服务都会返回一个新实例
-builder.RegisterType<XXX>().SingleInstance();//单例（组件将会一直存在）
-builder.RegisterType<XXX>().InstancePerLifetimeScope();//在特定的 ILifetimeScope 中请求服务，只返回一个实例
-builder.RegisterType<XXX>().InstancePerMatchingLifetimeScope("x");//叫做x的Scope都是同一个实例（就像给子容器命名，同名的都是同一个实例）
-//通过实例注册ITextwriter服务
-var output = new StringWriter();
-builder.RegisterInstance(output).As<ITextWriter>();
-//通过Lambda表达式注册，在 Resolve() 调用性能提升10倍
-builder.Register(c => new UserSession(DateTime.Now.AddMinutes(25)));//（这是构造函数参数注入）
-//如果不止一个组件暴露了相同的服务, Autofac将使用最后注册的组件作为服务的提供方,除非使用PreserveExistingDefaults()
-builder.RegisterType<ConsoleLogger>().As<ILogger>();
-builder.RegisterType<FileLogger>().As<ILogger>().PreserveExistingDefaults();
-```
-
-`IOC`容器最好是单例的。
-
-组件的生命周期与注册时定义有关，一般与容器的生命周期挂钩。为了充分利用自动的明确性释放, 你的组件必须实现 `IDisposable`. 你可以按需注册你的组件然后在组件解析的生命周期的结尾, 组件的 `Dispose()` 方法将会被调用。如果不想让`autofac`控制组件的自动释放行为，注册服务时使用`ExternallyOwned()`，即可以被外部所有者拥有的方式注册组件，它何时释放取决于你
-
-##### 解析服务
-
-在注册完组件并暴露相应的服务后，你可以从创建的`IOC`单例容器或其子生命周期中解析服务（`Resolve()`方法）。
-
-```csharp
-//通过创建子容器（从生命周期中）解析服务，最好不要从根容器解析服务，可能会造成内存泄露
-using(var scope = container.BeginLifetimeScope())
-{
-	var service = scope.Resolve<IService>();
-}
-```
-
-#### AOP面向切面编程
-
-使用`ASP.NET Core`中的`Filter`来实现`AOP`思想（是使用的特性实现），比如有`IActionFilter`（在`action`执行前、执行后；`controller`调用前调用后，全局…前后?添加方法）、`IResultFilter`（结果前结果后）、`ExceptionFilterAttribute`（捕捉`action`、`controller`、全局发生的异常），特性`Attribute`有三种注册方式，`action`注册，控制器注册，全局注册。执行顺序是类似于中间件的管道模型，就像是"面向环形编程"：灵活扩展，随取随用
-
-![](../../../attachments/c9639c64a512e42b4c48c1b082e6961b.png)
-
-前两种是在方法或类上添加特性，第三种是在`Startup`里的`Configure`里使用`Filters.Add`添加`filter`特性类进行全局注册。
-
-若是`filter`要依赖注入，但特性用一般方法是无法实现依赖注入的，`filter`的注入有四种方式：
-
-`Filter`类的写法和控制器的依赖注入一样
-
-1. 全局注册：这种方式会自动注入，
-
-2. `ServiceFilter`（一般的）：`action`、`controller`注册的特性使用`[ServiceFilter(typeof(Filter))]`而不是`[Filter]`。然后在`Startup`里的`ConfigureService`里注册那个类（只有一个参数，不是接口对应实例类两个参数，是让它注意一下自己自动依赖注入实例化一下）。
-
-3. `TypeFilter`（方便的） 与`ServiceFilter`类似，不同的是不需要再去`ConfigureService`里面注册
-
-4. `IFilterFactory`（个性化扩展） 这一种其实就是自己实现一遍`ServiceFilter`，也是要去`ConfigureService`注册。举例`CustomFilterFactoryAttribute`
-
-2、3、4的依赖注入都是基于`FilterFactory`，所以若是自行实现的其他`Filter`的`Attribute`需要实现`IFilterMetadata`接口，不然无法依赖注入
-
-![](../../../attachments/8b8fb09b586ae7f9fac248e21e89e762.png)
-
-![](../../../attachments/bda55ea17258fce1dbe049a9af81fc9b.png)
-
-使用第三方的`IoC`的`AOP`实现，这是对一个依赖注入的类进行拓展，当其他类依赖注入这个类并调用的时候，会进行相应的`AOP`，因此这个实现了深入一个方法内部、业务逻辑层进行`AOP`，这种深入的一般都需要用第三方`IoC`容器实现：
-
-![](../../../attachments/8a7bad07b38c3e3833489c25c2d9cfa4.png)
-
-![](../../../attachments/a53559fbf1d5133bcec3147d5a122937.png)
+三种生命周期（`AddTransient`/`AddSingleton`/`AddScoped`）、注入兼容性矩阵、手动获取依赖、第三方容器（`Autofac`）与`AOP`（`Filter`）的完整内容已分流至 [DependencyInjection](DependencyInjection.md)。
 
 ## 构建RESTful API
 
@@ -433,7 +347,7 @@ app.UseSwaggerUI(c =>
 
 `SwaggerUI`可以测试`api`接口
 
-然后运行，访问设定的`json`地址，比如这里就是访问<http://localhost:port/swagger/v1/swagger.json>，获取`api`的`json`信息。
+然后运行，访问设定的`json`地址，比如这里就是访问 `http://localhost:port/swagger/v1/swagger.json`，获取`api`的`json`信息。
 
 使用这个`api json`信息复制到`swagger`官网的编辑器中，可以选择生成对应语言的客户端SDK。
 
@@ -445,11 +359,9 @@ simply override the property BasePath and add a personal static property ApiHost
 
 另外生成dll也有bug，需要打开bat文件然后手动下载最新的nuget到目录再运行。但bat还是有bug，所以还是直接复制IO.Swagger项目直接引用使用，记得需要把依赖的三个dll（用bat生成的）复制到项目然后IO.Swagger去引用。
 
-<https://www.cnblogs.com/gdsblog/p/9279814.html> 版本控制
-
-<https://blog.csdn.net/shujudeliu/article/details/82189262> token设置
-
-<https://www.cnblogs.com/gl1573/archive/2020/04/07/12652708.html> 其他避坑
+- 版本控制：[swagger版本控制 - 博客园](https://www.cnblogs.com/gdsblog/p/9279814.html)
+- token 设置：`JWT`/`Bearer` 认证接入 `Swagger`（含 `RedirectUris` 配置）见 [ASP.NET-Core-认证](ASP.NET-Core-认证.md) 的「Swagger认证」一节（原外部链接：[swagger全局token设置 - CSDN](https://blog.csdn.net/shujudeliu/article/details/82189262)）
+- 其他避坑：[ASP.NET Core Swagger 使用避坑 - 博客园](https://www.cnblogs.com/gl1573/archive/2020/04/07/12652708.html)
 
 似乎enum上的注释不支持，只能显示enum类上的注释，所以要把所有数字代表的写在一起…
 
@@ -459,52 +371,15 @@ simply override the property BasePath and add a personal static property ApiHost
 
 然后`_configuration.GetSection("node").GetValue<类型>("子node")`
 
+## 部署
 
-# 部署
+部署相关内容已分流至 [环境部署](../环境部署.md)，含：
 
-**局域网简单部署**
-
-```bash
-dotnet xxx.dll --urls=http://currentIP:port
-```
-
-然后配置防火墙：
-
-Windows安全中心：高级设置（高级安全Windows Defender防火墙）
-
-入站规则中添加刚刚监听的端口。
-
-就可以让局域网其他的电脑访问。
-
-[8 ways to set the URLs for an ASP.NET Core app (andrewlock.net)](https://andrewlock.net/8-ways-to-set-the-urls-for-an-aspnetcore-app/)
-
-**公网部署**
-
-类似于局域网部署。
-
-但是IP需要查找一下，`ipconfig`，而不是使用公网IP。
-
-### WebAssembly部署
-
-需要从`Server`使用`Publish`功能进行部署，比如`Publish`到文件夹。
-
-### 最好在dll当前目录下进行启动服务
-
-比如如果从C盘使用`dotnet D:\xxx.dll`，则会导致非常多的问题，比如本地数据库`sqlite`路径访问不到（相对路径问题）
-
-## HTTPS部署
-
-### 本地开发
-
-1. `dotnet dev-certs https --trust` 使用该命令信任`dotnet`的SSL开发证书。（一般安装的时候似乎已经信任了？）
-
-2. 在`launchSettings.json`修改启动链接由`http`改到`https`。
-
-如果使用`IIS Express`启动（是VS集成的`ASP.NET Core`默认的Debug与测试的IIS的轻量版本），要非常注意的是，如果不是使用Admin权限启动（*其实试了以管理员启动VS也不行*）`IIS Express`进行Debug，则会存在
-
-`ERR_SSL_PROTOCOL_ERROR`（浏览器）、`Cannot determine the frame size or a corrupted frame was received.`（`dotnet`客户端）等问题
-
-它默认不需要管理员权限的端口在安装时预留了**44300-44399**（可以使用`netsh http show sslcert`命令看到），所以也可以修改`launchSettings.json`中IIS的`applicationUrl`为这些预留端口上的端口。（有时候44300之类的也用不了，换个端口试试）
+- 局域网简单部署（`dotnet xxx.dll --urls` + 防火墙入站规则）
+- 公网部署
+- `WebAssembly` 部署（`Server` 项目 `Publish`）
+- 最好在 `dll` 当前目录下启动服务（`sqlite` 等相对路径问题）
+- `HTTPS` 部署（`dev-certs`、`IIS Express` 44300-44399 预留端口）
 
 ## 作为前端服务器
 
@@ -518,7 +393,7 @@ Windows安全中心：高级设置（高级安全Windows Defender防火墙）
 
 所以无法简单的向下兼容使用如原生`WebSocket`直接连接`SingalR`。
 
-强行兼容：<https://www.derpturkey.com/signalr-is-an-abomination-how-to-connect-using-raw-websockets/>
+强行兼容：[SignalR is an abomination: how to connect using raw WebSockets](https://www.derpturkey.com/signalr-is-an-abomination-how-to-connect-using-raw-websockets/)
 
 优点：
 
@@ -530,7 +405,7 @@ Windows安全中心：高级设置（高级安全Windows Defender防火墙）
 
 一种适合于`.NET`（也支持`Javascript`）的`RPC`技术，用于构建实时性的`Web app`。
 
-<https://docs.microsoft.com/en-us/aspnet/core/blazor/tutorials/signalr-blazor?view=aspnetcore-6.0&tabs=visual-studio&pivots=webassembly>
+[Use ASP.NET Core SignalR with Blazor | Microsoft Learn](https://docs.microsoft.com/en-us/aspnet/core/blazor/tutorials/signalr-blazor?view=aspnetcore-6.0&tabs=visual-studio&pivots=webassembly)
 
 建议使用强类型
 
@@ -538,7 +413,7 @@ Windows安全中心：高级设置（高级安全Windows Defender防火墙）
 public class StronglyTypedChatHub : Hub<IChatClient>
 ```
 
-[https://docs.microsoft.com/en-us/aspnet/core/signalr/hubs?view=aspnetcore-6.0\#strongly-typed-hubs](https://docs.microsoft.com/en-us/aspnet/core/signalr/hubs?view=aspnetcore-6.0#strongly-typed-hubs)
+[Strongly typed hubs | Microsoft Learn](https://docs.microsoft.com/en-us/aspnet/core/signalr/hubs?view=aspnetcore-6.0#strongly-typed-hubs)
 
 这里`Hub`中的接口`IChatClient`是指`Client method`：
 
@@ -546,31 +421,9 @@ The return value of a client method must be void or of type Task.
 
 `Client`端的强类型暂时未实现：
 
-<https://github.com/dotnet/aspnetcore/issues/32534>
+[Client-side strong typing · Issue #32534 · dotnet/aspnetcore](https://github.com/dotnet/aspnetcore/issues/32534)
 
-### Handle events for a connection
-
-The `SignalR Hubs API` provides the `OnConnectedAsync` and `OnDisconnectedAsync` virtual methods to manage and track connections. Override the `OnConnectedAsync` virtual method to perform actions when a client connects to the hub, such as adding it to a group
-
-### Send messages from outside a hub
-
-通过`Controller`获取`Hub`进行调用。
-
-已经自动注册：
-
-```csharp
-private readonly IHubContext<NotificationHub> _hubContext;
-
-private readonly IHubContext<ChatHub, IChatClient> _strongChatHubContext;
-```
-
-### 不同的Hub不同的连接？
-
-[https://docs.microsoft.com/en-us/aspnet/signalr/overview/guide-to-the-api/hubs-api-guide-server\#multiple-hubs](https://docs.microsoft.com/en-us/aspnet/signalr/overview/guide-to-the-api/hubs-api-guide-server#multiple-hubs)
-
-如果使用多`Hub`，需要用`proxy`：
-
-[https://docs.microsoft.com/en-us/aspnet/signalr/overview/guide-to-the-api/hubs-api-guide-net-client\#how-to-create-the-hub-proxy](https://docs.microsoft.com/en-us/aspnet/signalr/overview/guide-to-the-api/hubs-api-guide-net-client#how-to-create-the-hub-proxy)
+连接事件（`OnConnectedAsync`/`OnDisconnectedAsync`）、从 Hub 外（如 `Controller`）发送消息、多 `Hub` 连接等进阶细节见 [ASP.NET-Core-进阶](ASP.NET-Core-进阶.md#signalr)。
 
 ## gRPC
 
@@ -580,11 +433,11 @@ private readonly IHubContext<ChatHub, IChatClient> _strongChatHubContext;
 
 **注意，`gRPC`传输使用`http/2`协议，而`http/2`协议需要`https`。**
 
-[https://learn.microsoft.com/zh-cn/aspnet/core/grpc/troubleshoot?view=aspnetcore-7.0\#call-insecure-grpc-services-with-net-core-client](https://learn.microsoft.com/zh-cn/aspnet/core/grpc/troubleshoot?view=aspnetcore-7.0#call-insecure-grpc-services-with-net-core-client)
+[Call insecure gRPC services with the .NET client | Microsoft Learn](https://learn.microsoft.com/zh-cn/aspnet/core/grpc/troubleshoot?view=aspnetcore-7.0#call-insecure-grpc-services-with-net-core-client)
 
 `gRPC`有四种调用方式
 
-[https://learn.microsoft.com/en-us/aspnet/core/grpc/services?view=aspnetcore-7.0\#implement-grpc-methods](https://learn.microsoft.com/en-us/aspnet/core/grpc/services?view=aspnetcore-7.0#implement-grpc-methods)
+[gRPC service methods | Microsoft Learn](https://learn.microsoft.com/en-us/aspnet/core/grpc/services?view=aspnetcore-7.0#implement-grpc-methods)
 
 不过`gRPC`都是只支持一个请求参数（即接口的请求类只能有一个）
 
@@ -614,7 +467,7 @@ private readonly IHubContext<ChatHub, IChatClient> _strongChatHubContext;
 
 ### 概念
 
-<https://docs.microsoft.com/en-us/aspnet/core/grpc/client?view=aspnetcore-6.0>
+[Create .NET gRPC clients | Microsoft Learn](https://docs.microsoft.com/en-us/aspnet/core/grpc/client?view=aspnetcore-6.0)
 
 ### 最佳实践
 
@@ -626,7 +479,7 @@ private readonly IHubContext<ChatHub, IChatClient> _strongChatHubContext;
 
 ### Protobuf-net
 
-<https://github.com/protobuf-net/protobuf-net>
+[protobuf-net/protobuf-net: Contract based serialization library for .NET](https://github.com/protobuf-net/protobuf-net)
 
 可以使用该第三方库从`Class`生成`proto`文件。
 
@@ -634,13 +487,13 @@ private readonly IHubContext<ChatHub, IChatClient> _strongChatHubContext;
 
 教程及介绍
 
-<https://learn.microsoft.com/en-us/aspnet/core/grpc/code-first?view=aspnetcore-7.0>
+[Create code-first gRPC services and clients | Microsoft Learn](https://learn.microsoft.com/en-us/aspnet/core/grpc/code-first?view=aspnetcore-7.0)
 
-<https://protobuf-net.github.io/protobuf-net.Grpc/gettingstarted>
+[protobuf-net.Grpc getting started](https://protobuf-net.github.io/protobuf-net.Grpc/gettingstarted)
 
 #### 效率测试
 
-<https://github.com/protobuf-net/protobuf-net.Grpc/issues/151>
+[protobuf-net.Grpc issue #151](https://github.com/protobuf-net/protobuf-net.Grpc/issues/151)
 
 ## Unit Test
 
@@ -652,7 +505,7 @@ In simple English, `Moq` is a library which when you include in your project giv
 
 ### Cookies
 
-<https://stackoverflow.com/questions/4463610/httpwebrequest-cookie-with-empty-domain>
+[httpwebrequest - Cookie with empty domain - Stack Overflow](https://stackoverflow.com/questions/4463610/httpwebrequest-cookie-with-empty-domain)
 
 `CookieContainer`是像浏览器一样，可以给多个`HttpWebRequest`复用的，所以需要声明出`Cookie`的`Domain`、`Path`。（即，`request`目标是匹配访问`Domain+Path`的才会使用该`Cookie`，否则不使用）
 
@@ -669,7 +522,8 @@ In simple English, `Moq` is a library which when you include in your project giv
 - 如果调试时出现 `/_framework/blazor.web.js`、样式文件或其他静态资源 `404`，要先检查当前环境是否真的走到了开发配置，以及项目是否正确启用了 Web Assets 相关设置。
 - `MapRazorComponents(...).AddInteractiveServerRenderMode()` 后，如果缺少 `AddAdditionalAssemblies(...)`，站内路由跳转可能正常，但浏览器直接 `F5` 刷新会出现 `404`。
 - CSS isolation 最终会按入口程序集生成 `xxx.styles.css`；消费组件库时，样式资源查找应以入口程序集名称为准，而不是组件库自己的程序集名。
-```cs
+
+```csharp
             // Important pitfall:
             // UseStaticWebAssets is useful for debugging static resources (CSS/JS) from referenced RCLs in Visual Studio,
             // but it can cause 404 behavior in certain build/debug combinations and must not be relied on for production.
@@ -677,9 +531,9 @@ In simple English, `Moq` is a library which when you include in your project giv
             // https://github.com/MudBlazor/MudBlazor/issues/2793
             webBuilder.WebHost.UseStaticWebAssets();
             // In local/testing scenarios, generated static-web-asset mappings can be inspected via .StaticWebAssets.xml.
-            // In production publish output, dependent static web assets are copied into the deployed wwwroot content.
+            // In production publish output, dependent static assets are copied into the deployed wwwroot content.
             // https://learn.microsoft.com/en-us/aspnet/core/razor-pages/ui-class?view=aspnetcore-8.0&tabs=visual-studio#consume-content-from-a-referenced-rcl
-            
+
             // If `/_framework/blazor.web.js` returns 404 in Debug, one possible cause is static-web-asset setup.
             // Another cause is an unexpected environment (for example, launchSettings.json not being applied).
             // Also verify `<RequiresAspNetWebAssets>true</RequiresAspNetWebAssets>` in the host .csproj when needed.

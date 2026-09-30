@@ -1,5 +1,7 @@
 # Visual Studio
 
+> 治理留痕（2026-09-30）：原文件含 6 个 H1（Visual Studio/项目配置/发布/模板/调试/快捷操作），已将后 5 个降为 H2 并同步下移其子标题，本文件现为唯一 H1。SourceGenerator 调试节与 [Rider](Rider.md) 互加链接。盘点所称"10 个无语言代码块"经复核实为 10 个代码块的闭合围栏误计，全部代码块均已带语言标注，无需补标。
+
 ## 文件编码与代码规范
 
 文件编码可以在这里检查：
@@ -199,9 +201,9 @@ Choose the `Multiple Startup Projects` option and set the appropriate actions.
 
 如果想阻止别人反编译你的源码，可为你的程序集加上 `SuppresslIdasmAttribute` 属性
 
-# 项目配置
+## 项目配置
 
-## 解决方案统一配置项目
+### 解决方案统一配置项目
 
 `project` 的 `xml` 中可以使用 `Import` 方式导入一个统一的 `xml` 文件：
 
@@ -232,14 +234,14 @@ Choose the `Multiple Startup Projects` option and set the appropriate actions.
     </PropertyGroup>
 ```
 
-## ASP.NET Core 项目编译下的多语言文件夹
+### ASP.NET Core 项目编译下的多语言文件夹
 
 通过 `SatelliteResourceLanguages` 可以指定需要的。不指定会全部都有。。。
 ```xml
 <SatelliteResourceLanguages>en;zh-Hans</SatelliteResourceLanguages>
 ```
 
-## CopyToOutputDirectory 但复制到特定目录下
+### CopyToOutputDirectory 但复制到特定目录下
 
 使用 `<Link>` 可以实现复制到特定输出目录
 ```xml
@@ -251,22 +253,22 @@ Choose the `Multiple Startup Projects` option and set the appropriate actions.
 </ItemGroup>
 ```
 
-## 项目修改后没有自动构建
+### 项目修改后没有自动构建
 在 `Visual Studio 2022` 里，调试时若项目有更改却未自动构建，可按下面的步骤来解决：
 
-### 1. 检查"选项"设置
+#### 1. 检查"选项"设置
 确保 `Visual Studio` 已开启自动构建功能。具体步骤如下：
 - 点击菜单栏中的"工具"，接着选择"选项"。
 - 在"选项"对话框里，展开"项目和解决方案"，然后选择"生成并运行"。
 - 在"运行时，若项目过期"选项中，要保证选中"始终构建"或者"提示构建"。
 
-### 2. 检查项目配置
+#### 2. 检查项目配置
 要保证项目配置无误，具体步骤如下：
 - 点击菜单栏中的"生成"，然后选择"配置管理器"。
 - 确保"活动解决方案配置"设为"调试"，"活动解决方案平台"设为适合你项目的平台（例如 `x86` 或者 `x64`）。
 - 检查每个项目的"生成"列是否被勾选。
 
-# 发布
+## 发布
 
 容器发布
 
@@ -296,9 +298,9 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
 
 如果发布失败或没反应，直接拷出 `output` 中的命令自己执行看看报错
 
-# 模板
+## 模板
 
-## 项目模板
+### 项目模板
 
 [dotnet new uninstall - .NET CLI | Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-new-uninstall)
 
@@ -322,9 +324,9 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
 
 > 有个 `bug`，用 `windows` 自带的 `zip` 压缩的文件 `VS` 无法识别。
 
-# 调试
+## 调试
 
-## 设置
+### 设置
 
 `Ctrl+ALT+E` 打开 `Exception Setting`，这里设置 `Debug` 时是否捕捉异常并停止提示。
 
@@ -342,11 +344,11 @@ Under `Common Properties\Startup Project` select `Multiple startup projects` and
 
 ![电脑萤幕的截图 描述已自动生成](../attachments/e65d34b03eae060ab5c231e2780469d1.png)
 
-## 断点
+### 断点
 
 行号上 `Ctrl+Mouse Left Click` 可以快速插入临时断点。 
 
-## 即时调试（Debug.Immediate）
+### 即时调试（Debug.Immediate）
 
 - 即时调试窗口：命中断点后 `Ctrl+ALT+I`
 
@@ -360,7 +362,7 @@ Under `Common Properties\Startup Project` select `Multiple startup projects` and
 
         ![电脑萤幕画面 描述已自动生成](../attachments/3d9d66c3d38b5e5891805466c6bf4816.gif)
 
-## 多线程调试
+### 多线程调试
 
 安装 `Debug Single Thread` 插件仅调试单个线程。
 
@@ -381,7 +383,7 @@ Under `Common Properties\Startup Project` select `Multiple startup projects` and
 
             ![截图里有图片 描述已自动生成](../attachments/6fab81425b78a47bfbcfff7aa846bf09.png)
 
-## 远程测试调试
+### 远程测试调试
 
 测试 -> 测试资源管理器
 
@@ -397,7 +399,7 @@ Under `Common Properties\Startup Project` select `Multiple startup projects` and
 
     ![图形用户界面, 文本, 应用程序 描述已自动生成](../attachments/806b136d6916f36720ab524d59906f68.png)
 
-## 调试外部 dll
+### 调试外部 dll
 
 [Presentation options for compiled code | ReSharper Documentation](https://www.jetbrains.com/help/resharper/Code_Presentation_Options.html)
 [Debug modules that have no debug information (PDB) | ReSharper Documentation](https://www.jetbrains.com/help/resharper/Debugging_Without_Source_Code.html)
@@ -406,23 +408,25 @@ Under `Common Properties\Startup Project` select `Multiple startup projects` and
 
 关闭勾选 `Just My Code`。加载所有 `dll` 之后，打断点会提示代码对不上。这时设置断点可以调试对不上的代码。
 
-### 拥有 pdb 文件时
+#### 拥有 pdb 文件时
 可使用原生 `Visual Studio` 加载符号，但需要手动创建一个目录，使用 `everything` 复制所有 `pdb` 文件（一般就在 `nuget` 目录下）到该文件夹，在 `Options->Debugging->Symbols->Symbol file locations` 中添加该目录
 
-## 调试打印类信息
+### 调试打印类信息
 
 默认情况下，如果有重写 `ToString()`，则使用该方法在 `Debugger` 中显示。
 还可以通过 `[DebuggerDisplay]` 进行配置
 [Display custom info using DebuggerDisplay - Visual Studio (Windows) | Microsoft Learn](https://learn.microsoft.com/en-us/visualstudio/debugger/using-the-debuggerdisplay-attribute?view=vs-2022)
 
-## 应用程序处于中断模式（The application is in break mode）
+### 应用程序处于中断模式（The application is in break mode）
 下了断点在自己代码里但发现中断模式，在通过 `dapr` 插件启动微服务调试时遇到，这种情况可能是那个无法命中断点的程序的 `dll` 较旧，需要重新 `build` 一下。
 
-## 调试 SourceGenerator 或 EFCore 等非常规程序入口点
+### 调试 SourceGenerator 或 EFCore 等非常规程序入口点
 call `Debugger.Launch()` in your code. The just-in-time debugger should prompt you to attach a debugger when it hits that line.
 `Debugger.Break()` 也可以尝试
 
-# 快捷操作
+另见 [Rider](Rider.md)（`launchSettings.json` 的 `DebugRoslynComponent` 方式）。
+
+## 快捷操作
 
 所有快捷键均可在工具 -> 选项 -> 键盘中自定义
 
@@ -430,7 +434,7 @@ call `Debugger.Launch()` in your code. The just-in-time debugger should prompt y
 
 代码窗口是 `Text Editor` 而不是 `C# Editor`
 
-## 个人定义
+### 个人定义
 
 `Alt + C` `Collapse all`（在 `Solution Explore` 界面）
 
@@ -438,21 +442,21 @@ call `Debugger.Launch()` in your code. The just-in-time debugger should prompt y
 `SoulutionExplorer.SyncWithActiveDocument`
 默认快捷键 `Ctrl+[,S`（个人建议改成 `Ctrl+W，Ctrl+W`，表示 `Where`）
 
-### Resharper 相关
+#### Resharper 相关
 
 `Ctrl + R , C` `Change Signatrue` (`TextEditor`)
 
 `Ctrl + Arrow Down` `ReSharper_GotoPrevMember` (`TextEditor`)
 
-## 代码操作
+### 代码操作
 
 `Ctrl+F12` `Go to Implementation`（转到接口实现）。
 
-## 切换
+### 切换
 
 `Ctrl+Tab` 快速在已打开的文件中切换
 
-## W 类窗口
+### W 类窗口
 
 `Window` 类所以先按 `W`
 
@@ -468,27 +472,27 @@ call `Debugger.Launch()` in your code. The just-in-time debugger should prompt y
 
 `Bookmark` 窗口 `Ctrl+W, B` (`Bookmark`)
 
-## K 类代码
+### K 类代码
 
-### Intelligence
+#### Intelligence
 
 列出当前可选成员 `Ctrl+K, L` (`List`)
 
 当前快速信息（比如出现红线、蓝线等有提示，一般要用鼠标移上去的） `Ctrl+K, I` (`Info`)
 
-### 注释
+#### 注释
 
 注释当前行/选中行 `Ctrl+ K, C` (`Cancel`)
 
 取消注释 `Ctrl+K, U` (`Undo cancel`)
 
-### 格式化
+#### 格式化
 
 格式化当前行/选中行：`Ctrl + K, F` (`Format`)
 
 格式化当前文档：`Ctrl + K, D` (`Document`)
 
-### 书签
+#### 书签
 
 书签设置在行号上，而不是代码上。如果修改代码，书签会保留在行号上，不会随代码移动。
 
@@ -496,34 +500,34 @@ call `Debugger.Launch()` in your code. The just-in-time debugger should prompt y
 
 转到下一个书签 `Ctrl + K, N` (`Next`)
 
-## 其他
+### 其他
 
-### 全文搜索
+#### 全文搜索
 
 [![](../attachments/3a4da5d726a60914579c20b555b267df.png)] 默认快捷键 `Ctrl+T`(`Go To`) 可根据文件名称，类名称，方法名称全搜索
 
 ![电子设备的屏幕 描述已自动生成](../attachments/ac8a1ef40d84035bb50ed78443b77ee7.gif)
 
-### 快速定位活动文件
+#### 快速定位活动文件
 
 [![](../attachments/36206c5edebb7bcbce3d264bab464531.png)] 默认快捷键 `Ctrl+[,S`（个人建议改成 `Ctrl+W，Ctrl+W`，表示 `Where`）如果发现会自动跟踪当前文件，去设置里面关闭 `Track Active Item in Solution Explorer`
 
 ![电脑的屏幕截图 描述已自动生成](../attachments/3f16e5f798883588e52433d2202c0017.gif)
 
-### 多行编辑
+#### 多行编辑
 
 - `Alt+鼠标拖选`
     - `Alt+Shift+方向键`
 
         ![文本 描述已自动生成](../attachments/8de332850a989919e180a6b5e6729632.gif)
 
-### 多光标同时编辑
+#### 多光标同时编辑
 
 `Ctrl+Alt+鼠标点击`要编辑的位置
 
 ![文本 描述已自动生成](../attachments/0fa9cbfac79bca665079eb4f704a6dad.gif)
 
-### 整行上下移动
+#### 整行上下移动
 
 `Alt+上下方向键`
 
@@ -531,29 +535,29 @@ call `Debugger.Launch()` in your code. The just-in-time debugger should prompt y
 
 整个方法块折叠以后也可以上下移动
 
-### 历史粘贴
+#### 历史粘贴
 
 `Ctrl+Shift+V` 打开粘贴板历史内容，点击粘贴
 
 ![图形用户界面, 文本, 应用程序 描述已自动生成](../attachments/5052e72105bf683d6650d3de22438dd5.png)
 
-## 增强配置
+### 增强配置
 
-### 开启内联参数提示
+#### 开启内联参数提示
 
 ![](https://furion.net/img/vs1.png) ![](https://furion.net/img/vs2.png)
 
-### 开启全局智能提示
+#### 开启全局智能提示
 
 ![](https://furion.net/img/vs3.png) ![](https://furion.net/img/vs4.png)
 
-### 实时显示诊断错误
+#### 实时显示诊断错误
 
 在过去，我们需要写完代码编译才能知道具体的错误，最新版的 `Visual Studio` 支持 **内联诊断错误**，开启如下：
 
 ![](https://furion.net/img/vs7.png) ![](https://furion.net/img/vs8.png)
 
-### 中文智能提示
+#### 中文智能提示
 
 打开网站 [.NET IntelliSense 本地化包下载](https://dotnet.microsoft.com/zh-cn/download/intellisense) 下载对应的语言版本。
 

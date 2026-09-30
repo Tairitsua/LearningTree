@@ -1,5 +1,7 @@
 # Publish & subscribe
 
+> 治理留痕（2026-09-30）：开头导语与原 `## 发布订阅` 章节逐字重复，已去重合并至文件导语；`## 问题排查` 下"问题N"标题统一为"问题 N：一句话概括"格式（一句话为治理时概括，正文未动）；队列名示例代码块补语言标注 `text`。
+
 如果应用程序有配置，则程序本身需要暴露 `/dapr/subscribe` 接口，供边车获取程序所监听的主题。
 
 边车启动初始化时，首先会去调用应用的 `/dapr/subscribe` 方法获取应用是否有监听分布式事件，如有则注册到边车之中。
@@ -11,7 +13,7 @@
 ## 消息消费模式
 
 目前消息消费模式是按照消费者组，对应 `RabbitMQ` 中的 `Queue` 的概念，一个主题是一个 `Exchanges`，比如主题 `ProtocolPlatform.PublishedLanguages.DomainFlight.Events.EventAlterFlight`，对于不同服务的消费者组是类似如下的 `Queue`：
-```
+```text
 dev-service-adaptor-msg-preprocessor-for-atc-ProtocolPlatform.PublishedLanguages.DomainFlight.Events.EventAlterFlight
 dev-service-alarm-api-ProtocolPlatform.PublishedLanguages.DomainFlight.Events.EventAlterFlight
 dev-service-atc-flight-adaptor-ProtocolPlatform.PublishedLanguages.DomainFlight.Events.EventAlterFlight
@@ -32,27 +34,21 @@ dev-service-atc-flight-adaptor-ProtocolPlatform.PublishedLanguages.DomainFlight.
 
 `Dapr`提供的批量推送，在消息队列入队时是自动将消息拆分成了单个，比如一次推送1000条一个包，那么入消息队列的消息是1000条消息，保持了队列的数据结构一致性。
 
-
-## 发布订阅
-
-边车启动初始化时，首先会去调用应用的 `/dapr/subscribe` 方法获取应用是否有监听分布式事件，如有则注册到边车之中。
-
-
 ## 问题排查
 
 ### Kafka
 
-#### 问题一
+#### 问题 1：HTTP 流量被发送到 Kafka 端口 9092
 
 `1195725856 is GET[space] encoded as a big-endian, four-byte integer (see here for more information on how that works). This indicates that HTTP traffic is being sent to Kafka port 9092, but Kafka doesn't accept HTTP traffic, it only accepts its own protocol (which takes the first four bytes as the receive size, hence the error).`
 
-#### 问题二 dapr显示无法连接到kafka（is your cluster reachable?）
+#### 问题 2：dapr 显示无法连接到 Kafka（is your cluster reachable?）
 
 需要配置好地址。
 
 项目`Rebuild`后可能是`Dapr`开的比较快，而`Kafka`还没起来，导致以为连不上。第二次再启动就行了。
 
-#### 问题三 Message was too large, server rejected it to avoid allocation error when using Headers
+#### 问题 3：Message was too large, server rejected it to avoid allocation error when using Headers
 
 ```yaml
 - name: maxMessageBytes
@@ -63,18 +59,18 @@ dev-service-atc-flight-adaptor-ProtocolPlatform.PublishedLanguages.DomainFlight.
 
 注意`Dapr`这些`component`的`yaml`配置文件需要`Rebuild`才会生效
 
-#### 问题四 无法从外部连接kafka，dapr访问地址将自动变为内部集群ip
+#### 问题 4：无法从外部连接 Kafka，dapr 访问地址将自动变为内部集群 IP
 
 `Kafka`需配置外部访问监听地址：[Kafka Listeners - Explained](https://rmoff.net/2018/08/02/kafka-listeners-explained/)
 
 
 
-#### 问题五 (rabbitmq) operation basic.consume caused a connection exception not_allowed: "attempt to reuse consumer tag 
+#### 问题 5：RabbitMQ 报 operation basic.consume caused a connection exception not_allowed: "attempt to reuse consumer tag"
 
 这里dapr将ConsumerID和ConsumerTag合并了，RabbitMQ不允许有相同的ConsumerID被重新注册多次，ConsumerID在RabbitMQ是指的一个连接对象，不是消费者组。 RabbitMQ的消费者组概念是相同的TopicQueue。 
 我遇到这个问题是因为使用了 `streaming subcription api`，然后边车对于相同的主题（不同Handler）注册了多次，没有处理这个情况。 
 
-#### 一直启动时失败
+#### 问题 6：Kafka 一直启动时失败
 
 1. **正常启动阶段**：日志前半部分是 Kafka 启动时的常规操作 —— 加载各个分区的日志（LogLoader），包括业务主题（如 UserService 相关）和 Kafka 内部主题`__consumer_offsets`（消费者偏移量存储），此时 Kafka 还在加载 93 个分区的日志（进度到 59/93），尚未完成启动。
 2. **关键触发点**：`Terminating process due to signal SIGTERM` 表明 Kafka 进程收到了 SIGTERM 终止信号（通常由 kill 命令、容器停止、系统超时机制触发）。

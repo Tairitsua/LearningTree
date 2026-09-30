@@ -2,19 +2,7 @@
 
 ## 概念
 
-`Node.js` 是 `JavaScript` 运行时，类比于 `JVM` 之于 `Java`，`CLR` 之于 `C#`。
-
-它是可以在 `Server-Side` 执行 `JavaScript`（`Client-Side` 是使用浏览器执行）
-
-因此和 `Vue.js`、`React`、`Angular` 这些 `JavaScript` 库不一样。
-
-### 框架
-
-`v8` 引擎解释执行 `js` 代码，提供桥梁接口。（`Chrome` 浏览器也是使用 `V8` 引擎）
-
-`libuv` 库处理异步模型：事件循环、事件队列、异步 `IO`。
-
-第三方模块：`zlib`、`http`、`c-ares` 等
+`Node.js` 是 `JavaScript` 运行时，可在服务端执行 `JavaScript`，与 `Vue.js`、`React`、`Angular` 等前端库不同；其运行时组成（`v8` 引擎、`libuv` 等）见 [Node 与 npm](Node与npm.md)（原概念段已移入该文件）。
 
 `TypeScript` 是 `JavaScript` 的当前最受欢迎的中间语言，提供了强大灵活的类型系统，`TypeScript` 提供一个编译器 `tsc` 可以将 `TypeScript` 编写的代码编译成 `JavaScript`。除了 `TypeScript`，你可能还听过 `CoffeeScript`、`Flow`、`Dart` 等 `JavaScript` 的中间语言。它们都可以通过它们的编译器编译成原生 `js`，原生 `js` 也叫 `vanilla js`。
 
@@ -38,7 +26,7 @@
 
 `ES6` 是一个大改版，往后的版本都是添加一些特性而已。
 
-目前 2022 年，主流浏览器都支持 `ES 2017` 所有特性。所以可以放心用。
+截至 2022 年，主流浏览器已支持 `ES2017` 所有特性，可以放心用。
 
 ### DOM
 

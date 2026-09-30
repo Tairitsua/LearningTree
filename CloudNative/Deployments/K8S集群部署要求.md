@@ -1,5 +1,12 @@
 # K8S集群部署要求
 
+> 治理留痕（2026-09-30）：
+> ① 文末新增"参考资料"节，由原 `Deployments/K8S部署笔记.md`（外链清单）并入，源文件已 `git rm`；
+> ② 隐私脱敏：时钟服务器内网 IP 已替换为 `192.168.x.x`（原值见 `_governance/migration-log-cloudnative.md`）；
+> ③ 笔误修正：`im` → `vim`；"openEuler 软件源"命令块中错乱的全角（2）（3）（3）（4）编号已整理为顺序命令；
+> ④ `net.ipv4.tcp_tw_recycle` 处加注"[内核 4.12 起已移除，待事实核查确认]"；
+> ⑤ "系统资源限制配置"一节 AI 粘贴痕迹重排为正式笔记。
+
 ## 节点要求
 
 1. 同步时钟服务器时间
@@ -32,9 +39,9 @@
 
 > `openEuler`
 
-- 运行 `systemctl stop firewalld.service` 命令来停止防火墙服务。
-- 运行 `systemctl disable firewalld.service` 命令来禁用防火墙服务的自动启动。
-- 运行 `systemctl status firewalld.service` 命令来查看防火墙服务的状态，确认已经关闭。
+- 运行 `systemctl stop firewalld.service` 命令来停止防火墙服务。
+- 运行 `systemctl disable firewalld.service` 命令来禁用防火墙服务的自动启动。
+- 运行 `systemctl status firewalld.service` 命令来查看防火墙服务的状态，确认已经关闭。
 
 ## 时钟配置
 
@@ -46,8 +53,8 @@
 
 2. 在配置文件里添加以下配置
 
-   ```
-   server xxx.xx.xx.xx(服务端 IP) iburst (本机配置,自己既是服务端又是客户端) 
+   ```ini
+   server xxx.xx.xx.xx(服务端 IP) iburst (本机配置,自己既是服务端又是客户端)
    allow
    ```
 
@@ -83,8 +90,8 @@ systemctl status chronyd
 
 1. `vi /etc/chrony.conf` 修改 `server`
 
-   ```
-   server 188.22.94.120 iburst （IP 为时钟服务器 ip）
+   ```ini
+   server 192.168.x.x iburst （IP 为时钟服务器 ip）
    ```
 
 ![](../../attachments/Pasted%20image%2020240616173908.png)
@@ -120,17 +127,18 @@ nameserver 188.xxx.xxx.xxx
 可以运行 `systemctl restart NetworkManager` 命令重启使其强制生效。
 ## 系统资源限制配置
 
-`Linux` 中定义的系统句柄最大数量的默认值取决于您所指的句柄类型。有不同类型的句柄，如文件描述符、进程、套接字、内存映射等。每种都有不同的限制和不同的更改方法。
+`Linux` 中定义的系统句柄最大数量的默认值取决于句柄的类型。句柄有多种类型，如文件描述符、进程、套接字、内存映射等，每种都有不同的限制和不同的更改方法：
 
-例如，每个进程的文件描述符最大数量可以通过使用命令 `ulimit -n` 来检查。默认值通常是 1024，但可以通过编辑 `/etc/security/limits.conf` 文件来更改。系统的文件描述符最大数量可以通过使用命令 `cat /proc/sys/fs/file-max` 来检查。默认值取决于可用内存的数量，但可以通过使用命令 `sysctl fs.file-max=number` 来更改。
+- **每进程文件描述符数**：通过 `ulimit -n` 检查，默认值通常是 1024，可通过编辑 `/etc/security/limits.conf` 更改。
+- **系统级文件描述符数**：通过 `cat /proc/sys/fs/file-max` 检查，默认值取决于可用内存的数量，可通过 `sysctl fs.file-max=number` 更改。
+- **每用户最大进程数**：通过 `ulimit -u` 检查，默认值通常是 4096，可通过编辑 `/etc/security/limits.conf` 更改。
+- **系统级最大进程数**：通过 `cat /proc/sys/kernel/pid_max` 检查，默认值通常是 32768，可通过 `sysctl kernel.pid_max=number` 更改。
+- **系统 `TCP/IP` 连接（本地端口范围）**：通过 `cat /proc/sys/net/ipv4/ip_local_port_range` 检查，默认值通常是 32768 到 61000，可通过 `sysctl net.ipv4.ip_local_port_range="min max"` 更改。其他影响 `TCP/IP` 连接的参数还有 `net.ipv4.tcp_fin_timeout`、`net.ipv4.tcp_tw_recycle` 和 `net.ipv4.tcp_tw_reuse`。
+- **每进程内存映射最大数量**：通过 `cat /proc/sys/vm/max_map_count` 检查，默认值通常是 65530，可通过 `sysctl vm.max_map_count=number` 更改。
 
-另一个例子是每个用户的最大进程数，可以通过使用命令 `ulimit -u` 来检查。默认值通常是 4096，但可以通过编辑 `/etc/security/limits.conf` 文件来更改。系统的最大进程数可以通过使用命令 `cat /proc/sys/kernel/pid_max` 来检查。默认值通常是 32768，但可以通过使用命令 `sysctl kernel.pid_max=number` 来更改。
+> `net.ipv4.tcp_tw_recycle` 参数[内核 4.12 起已移除，待事实核查确认]，新内核上已无法通过 `sysctl` 调整该参数。
 
-第三个例子是系统的 `TCP/IP` 连接最大数量，可以通过使用命令 `cat /proc/sys/net/ipv4/ip_local_port_range` 来检查。默认值通常是 32768 到 61000，但可以通过使用命令 `sysctl net.ipv4.ip_local_port_range="min max"` 来更改。还有其他影响 `TCP/IP` 连接的参数，如 `net.ipv4.tcp_fin_timeout`、`net.ipv4.tcp_tw_recycle` 和 `net.ipv4.tcp_tw_reuse`。
-
-第四个例子是每个进程的内存映射最大数量，可以通过使用命令 `cat /proc/sys/vm/max_map_count` 来检查。默认值通常是 65530，但可以通过使用命令 `sysctl vm.max_map_count=number` 来更改。
-
-这些只是 `Linux` 中系统句柄及其限制的一些例子。可能还有其他类型的句柄具有不同的限制和更改方法。您可以通过在网上搜索或阅读 `Linux` 文档来找到有关它们的更多信息。
+以上只是 `Linux` 中系统句柄及其限制的一些例子，可能还有其他类型的句柄具有不同的限制和更改方法，可查阅 `Linux` 文档了解更多。
 
 ## openEuler 软件源
 
@@ -142,22 +150,17 @@ nameserver 188.xxx.xxx.xxx
 
    ```bash
    mkdir -p /mnt/iso
-
-（ 2    ） mount      openEuler-22.03-LTS-everything-x86_64-dvd.iso
-
-/mnt/iso/
-
-（3）mkdir /opt/openeuler_repo/
-
-（3） cp -r /mnt/iso/* /opt/openeuler_repo/
-
-（4）   im /etc/yum.repos.d/openEuler.repo
+   mount openEuler-22.03-LTS-everything-x86_64-dvd.iso /mnt/iso/
+   mkdir /opt/openeuler_repo/
+   cp -r /mnt/iso/* /opt/openeuler_repo/
+   vim /etc/yum.repos.d/openEuler.repo
+   ```
 
 3. 在 `openEuler.repo` 文件里写入以下内容：
 
 
    ```ini
-   [base] 
+   [base]
    name=base
    baseurl=file:///opt/openeuler_repo
    enabled=1
@@ -201,7 +204,7 @@ http {
         location / {
             autoindex            on;            # 开启访问目录下层文件，这里一定要记得开，不然会有403Forbidden问题
             autoindex_exact_size on;
-            autoindex_localtime  on; 
+            autoindex_localtime  on;
         }
 
     }
@@ -223,3 +226,15 @@ ln -s /opt/openeuler_repo /usr/share/nginx/repo
    ```
 
 6. 打开浏览器访问本机 `IP` 地址，出现下图则部署成功。
+
+## 参考资料
+
+1. [B站视频教程](https://www.bilibili.com/video/BV15g411F7pj/?spm_id_from=333.337.search-card.all.click&vd_source=c5c41a7b3fb9dadc2ff98bb690cf1433)
+
+2. [KubeSphere 离线安装文档](https://www.kubesphere.io/zh/docs/v3.3/installing-on-linux/introduction/air-gapped-installation/)
+
+3. [在 VMware vSphere 上安装 KubeSphere](https://www.kubesphere.io/zh/docs/v3.3/installing-on-linux/on-premises/install-kubesphere-on-vmware-vsphere/#%E9%83%A8%E7%BD%B2-keepalived-%E5%92%8C-haproxy)
+
+> 2、3 为 KubeSphere v3.3 时点文档，新版本文档结构可能有变化。
+
+存储方案：`Ceph` 使用 `ceph-deploy` 部署。

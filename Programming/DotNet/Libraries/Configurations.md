@@ -1,5 +1,13 @@
 # Configurations
 
+> 相关：[ASP.NET-Core](ASP.NET-Core.md) 的「使用Configuration」一节（`Options` 三兄弟 `IOptions`/`IOptionsSnapshot`/`IOptionsMonitor` 的行为差异、按优先度读取配置等）。[DependencyInjection](DependencyInjection.md)（`IOptionsSnapshot` 为 `Scoped` 生命周期的注意事项）。
+
+## Options 模式（三兄弟）
+
+- `IOptions<T>`：只读取一次（启动时），可注入单例服务。
+- `IOptionsSnapshot<T>`：请求级快照，下一次请求重新读取配置（`Scoped` 生命周期，无法注册到单例服务）。
+- `IOptionsMonitor<T>`：即时读取配置变更。
+
 ## Configure 方法
 
 该方法似乎可以不同地方执行然后叠加生效。

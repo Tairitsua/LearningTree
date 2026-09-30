@@ -1,8 +1,6 @@
-# Frontend Concept
+# `CORS`(Cross-Origin Resource Sharing) 跨站资源共享
 
-## `CORS`(Cross-Origin Resource Sharing) 跨站资源共享
-
-### 概念
+## 概念
 
 配置`CORS`不是限制浏览器请求，反而是放宽浏览器的跨域请求。因为浏览器有一个默认的策略：`同源策略(Same-Origin Policy)`。
 所谓同源指的是：
@@ -21,16 +19,16 @@
 
 在严苛的同源策略下，`CORS`开了一个口子，让浏览器能够发起跨站请求。`CORS`反而给某些随便设置的服务端带来了`CSRF`漏洞。
 
-#### Cross-Origin Server与Origin Server
+### Cross-Origin Server与Origin Server
 我们需要弄清源站和跨站的定义。
 ![](../attachments/Pasted%20image%2020230808191824.png)
 
 `CORS`是在服务端配置的，来指明该服务端**是否支持跨站请求**。如果没有配置，则浏览器发向该`Cross-Origin Server`的请求都默认无法通过（被浏览器拦截）。
 
-#### `CORS`流程
+### `CORS`流程
 
-##### 简单请求
-###### 定义
+#### 简单请求
+##### 定义
 
 1. 请求方法是以下三种方法之一：
 - `HEAD`
@@ -43,7 +41,7 @@
 - `Last-Event-ID`
 - `Content-Type`：只限于三个值`application/x-www-form-urlencoded`、`multipart/form-data`、`text/plain`
 ![](../attachments/Pasted%20image%2020230808192247.png)
-###### 流程
+##### 流程
 1. 浏览器发起请求，并且自动在`header`请求头强制加上来源`Origin`给服务器检查；
 2. 服务器处理请求（有配置`CORS`的还可以拒绝处理响应），返回数据，有配置`CORS`的会返回响应头：
 	- `Access-Control-Allow-Origin`（必含）：**该字段是必须的，否则请求按失败处理**。它的值要么是请求时`Origin`字段的值，要么是一个`*`，表示接受任意域名的请求。
@@ -55,13 +53,13 @@
 3. 浏览器检查`CORS`响应头，如果包含了当前的源则放行，反之拦截。（即如果这个跨站源服务端没有配置`CORS`，浏览器不会使用返回的数据来渲染页面等）
 
 	这里需要注意，浏览器是拦截响应，而不是拦截请求，跨域请求是发出去的，并且服务端做了响应，只是浏览器拦截了下来。
-##### 复杂请求
+#### 复杂请求
 
-###### 定义 
+##### 定义
 指那些简单请求之外的请求。
 ![](../attachments/Pasted%20image%2020230808212302.png)
 
-###### 流程
+##### 流程
 1. 浏览器发起预检请求`preflight`，请求方法是`OPTIONS`，请求头带上来源`origin`，不包含请求体；
 2. 服务器返回检查结果，配置`CORS`头。未配置`CORS`的，浏览器视为拒绝跨域，则停止请求。
 3. 对比服务器返回的`CORS`头，通过则浏览器发起真正请求。
@@ -73,7 +71,7 @@
 4. 服务端返回数据。
 5. 后续浏览器关于该请求就和简单请求一样进行。
 
-### 参考
+## 参考
 
 [Complete Guide to CORS (reflectoring.io)](https://reflectoring.io/complete-guide-to-cors/)
 [跨域资源共享 CORS 详解 - 阮一峰的网络日志 (ruanyifeng.com)](https://www.ruanyifeng.com/blog/2016/04/cors.html)

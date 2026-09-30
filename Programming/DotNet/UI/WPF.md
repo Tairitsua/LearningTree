@@ -57,7 +57,7 @@ namespace Demo
 
 **App.xaml中有主窗口启动路径，如果移动mainwindow.xmal要更改它**
 
-## 代码层：
+## 代码层
 
 **●获取当前主程序窗口对象用**
 
@@ -67,7 +67,7 @@ namespace Demo
 
 `Application.Current.MainWindow.FindName("xxx")`
 
-## 美化：
+## 美化
 
 **●ScrollViewer**
 
@@ -100,7 +100,7 @@ private void Grid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 
 原版无法实现，需要借助插件
 
-https://www.cnblogs.com/ainijiutian/p/apply-multiple-styles-to-one-element-for-wpf.html
+[WPF中一个元素应用多个Style - 博客园](https://www.cnblogs.com/ainijiutian/p/apply-multiple-styles-to-one-element-for-wpf.html)
 
 **●UI区域划分**
 
@@ -140,7 +140,7 @@ https://www.cnblogs.com/ainijiutian/p/apply-multiple-styles-to-one-element-for-w
 </Border.Background>
 ```
 
-## 资源引入：
+## 资源引入
 
 **●静态资源和动态资源**
 

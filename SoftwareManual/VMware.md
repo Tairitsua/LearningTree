@@ -1,5 +1,7 @@
 # VMware
 
+> 治理留痕（2026-09-30）：拼写 "TroubleShooting" 已修正为 "Troubleshooting"。
+
 ## 网络
 
 ### Bridged模式
@@ -12,7 +14,7 @@
 
 ### Host-only模式
 
-## TroubleShooting
+## Troubleshooting
 
 ### vmware workstation does not support nested virtualization on this host
 ![](../attachments/Pasted%20image%2020230730175319.png)

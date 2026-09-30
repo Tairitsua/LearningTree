@@ -12,19 +12,18 @@ Controls in Windows Forms are bound to a specific thread and are not thread safe
 
 ## 启用控制台调试
 
-https://www.cnblogs.com/cyberarmy/p/7644179.html
-
-`WinForm`/`WPF`启用控制台调试
+`WinForm`/`WPF` 项目启用控制台输出做调试的方法见这篇：[Winform 调试输出控制台信息 - 博客园](https://www.cnblogs.com/cyberarmy/p/7644179.html)
 
 ## 双层窗体
 
-https://blog.csdn.net/arrowzz/article/details/70183494
+实现双层窗体（如异形/嵌套窗体）的两种做法参考：
 
-https://www.haolizi.net/example/view_24546.html
+- [C# WinForm 双层窗体实现 - CSDN](https://blog.csdn.net/arrowzz/article/details/70183494)
+- [C# 实现无边框窗体双层窗体 - 好例子](https://www.haolizi.net/example/view_24546.html)
 
 ## WinForm中控件与背景透明
 
-https://www.cnblogs.com/chengxiaohui/articles/1921608.html
+做法见 [C# WinForm 控件透明 - 博客园](https://www.cnblogs.com/chengxiaohui/articles/1921608.html)：
 
 要实现C# `WinForm`中的控件与背景的透明，可以通过设置控件的`BackColor`属性为`Transparent`，同时设置其父控件。因为在C#中，控件的透明指对父窗体透明。  
 如果不设置`Parent`属性，那么控件将只对`Form`透明，显示的时候都会把`Form`的背景色（默认为`Control`）重刷一遍作为自己的背景。  
