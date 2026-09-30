@@ -15,7 +15,7 @@
 
 
 
-[编码类](MISC/编码类.md)
+[编码类](Misc/编码类.md)
 
 ## 隐写术(steganography)
 

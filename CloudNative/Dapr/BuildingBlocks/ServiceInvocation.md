@@ -21,7 +21,7 @@
 
 #### 如果发现dapr解析后请求的地址与容器组地址对应不上
 
-1. 有可能是修改了`K8S DNS`的缓存刷新时间或策略，导致重启微服务后未能立刻刷新缓存导致边车错误路由到旧的容器组地址。排查`K8S DNS`问题：[Kubernetes(K8S)](Kubernetes(K8S).md#DNS)
+1. 有可能是修改了`K8S DNS`的缓存刷新时间或策略，导致重启微服务后未能立刻刷新缓存导致边车错误路由到旧的容器组地址。排查`K8S DNS`问题：[Kubernetes 网络/DNS](../../Kubernetes/网络.md)
 2. 如果测试发现仅有一个节点的容器如`worker1`，其上的服务的边车均有解析问题，解析`DNS`不对，其他节点正常，使用`busybox`测试`coreDNS`解析正常，则该问题暂无解决方案(`Dapr 1.14.4`)
 
 ### error invoke  50002 Unavailable  (dapr 1.14.4)

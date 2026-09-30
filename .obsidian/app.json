@@ -7,7 +7,9 @@
   "spellcheck": false,
   "userIgnoreFilters": [
     "src-gen/",
-    "attachments/"
+    "attachments/",
+    "_archive/",
+    "_governance/"
   ],
   "promptDelete": false,
   "alwaysUpdateLinks": true,

@@ -27,7 +27,7 @@
 
 #### 屏蔽异常
 
-![](../../../attachments/0f07949a3767dd09c97e8fc4c37de0b6.png)
+![](../../attachments/0f07949a3767dd09c97e8fc4c37de0b6.png)
 
 ## `IDA`
 
@@ -41,12 +41,12 @@
 
 它除了`DummyDll`文件还会生成
 
-![Graphical user interface, text Description automatically generated](../../../attachments/76edc5c6459675d8b2bdcb0126a2816b.png)
+![Graphical user interface, text Description automatically generated](../../attachments/76edc5c6459675d8b2bdcb0126a2816b.png)
 
 其中`ida_with_struct_py3.py`脚本可以使用`ida`运行，选择`script.json`，然后选择`il2cpp.h`头文件，运行后`IDA`将会补全函数名
 
-![Graphical user interface, application Description automatically generated](../../../attachments/65fd3bdf0ce8572a5cc835fc357c2c74.png)
+![Graphical user interface, application Description automatically generated](../../attachments/65fd3bdf0ce8572a5cc835fc357c2c74.png)
 
 对于其他语言调用动态链接库的情况，可以去`Exports`去看这个库导出了哪些方法。
 
-![](../../../attachments/Pasted%20image%2020230904114624.png)
+![](../../attachments/Pasted%20image%2020230904114624.png)
