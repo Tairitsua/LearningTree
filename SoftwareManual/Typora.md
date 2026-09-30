@@ -1,5 +1,25 @@
 # Typora
 
+## 快捷键
+
+| 快捷键 | 作用 |
+| ----------- | -------- |
+| `Shift+Enter` | 表格换行 |
+
+## 自定义配置
+
+`Advanced Setting` 可以打开配置文件夹，其中 `conf.user.json` 中定义：
+
+```json
+ "keyBinding": {
+    // for example:
+    // "Always on Top": "Ctrl+Shift+P"
+    // All other options are the menu items 'text label' displayed from each typora menu
+    "Code":"Alt+1",
+    "Code Fences":"Alt+3"
+  },
+```
+
 ## 自动生成标题编号
 
 打开`Typora`，然后依次点击：文件→偏好设置→外观→打开主题文件夹

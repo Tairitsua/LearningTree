@@ -1,124 +1,31 @@
-# Markdown 
+# LearningTree · 个人知识宫殿
 
-## 配置
+> 使用说明与 agent 规范见 [AGENTS.md](AGENTS.md)；治理审计见 `_governance/`。
 
-#### 不限制页面宽度
-`Editor` -> `Display` -> `Readable line length`，取消勾选。
+## 域导航
 
-## Markdown语法
+| 域 | 定位 | 入口 |
+|---|---|---|
+| 计算机科学 | 原理与理论：算法、Linux、网络、数据库、架构、安全原理、AI、大数据 | [ComputerScience/README](ComputerScience/README.md) |
+| 编程语言 | C#/.NET 全家、C++、Python、C、PHP、正则、跨栈故障排查 | [Programming/README](Programming/README.md) |
+| 前端 | HTML/CSS/JS/TS/Node/Vue/WebComponent/CORS/Blazor | [Frontend/README](Frontend/README.md) |
+| 云原生 | Docker、Kubernetes、Dapr、中间件组件、CI/CD、集群部署 | [CloudNative/README](CloudNative/README.md) |
+| CTF | 密码/Misc/Web/逆向/Pwn/AWD/应急响应/工具箱/个人项目 | [CTF/README](CTF/README.md) |
+| 软件手册 | Windows/Linux 软件使用速查与总清单 | [SoftwareManual/README](SoftwareManual/README.md) |
+| 英语 | 语法体系（长难句/从句/非谓语/句子成分/词性） | [English/README](English/README.md) |
+| 数学 | 数论、形式幂级数（竞赛/密码学向） | [Math/README](Math/README.md) |
+| 音乐 | 乐理、和弦、FL Studio | [Music/README](Music/README.md) |
+| 理财 | 指数与基金投资 | [Finance/README](Finance/README.md) |
 
-[Basic formatting syntax - Obsidian Help](https://help.obsidian.md/Editing+and+formatting/Basic+formatting+syntax)
+## 基础设施
 
-- 现在已经设置自动将粘贴的图片放在attachments文件夹下 
+- `attachments/`：图片与配置附件（粘贴自动落此）。
+- `_templates/`：笔记模板（通用笔记、CTF writeup、代码块、Linux 命令条目）。
+- `_archive/`：被取代的历史原稿（搜索已忽略，仅存档）。
+- `_governance/`：治理工作区（计划、盘点、迁移日志、事实核查记录、校验脚本）。
 
-| 语法   | 作用                                                                           |
-|:------ |:------------------------------------------------------------------------------ |
-| `[[]]` | 内部链接，链接到当前文档项目任何文档或图片等。已配置自动转换为Markdwon规范链接 |
-| `[]()` | Markdown规范链接                                                               |
-| `> `   | 引用                                                                               |
+## 快速上手（Obsidian）
 
-[Basic Syntax | Markdown Guide](https://www.markdownguide.org/basic-syntax/)
-[Extended Syntax | Markdown Guide](https://www.markdownguide.org/extended-syntax/)
-## Typora
-### 快捷键
-
-| 快捷键      | 作用     |
-| ----------- | -------- |
-| Shift+Enter | 表格换行 |
-|             |          |
-|             |          |
-
-#### 自定义配置
-
-`Advanced Setting`可以打开配置文件夹，其中`conf.user.json`中定义：
-
-```json
- "keyBinding": {
-    // for example:
-    // "Always on Top": "Ctrl+Shift+P"
-    // All other options are the menu items 'text label' displayed from each typora menu
-    "Code":"Alt+1",
-    "Code Fences":"Alt+3"
-  },
-```
-
-
-
-## Obsidian快捷键
-
-目前收集的和自定义的常用快捷键
-
-| 快捷键                    | 作用                     |
-| ---------------------- | ---------------------- |
-| Ctrl+1...6             | 设置为Heading1-6          |
-| Ctrl+T                 | 快捷增加模板（Template）       |
-| Ctrl+B                 | 加粗（Bold）               |
-| Ctrl+P                 | 命令面板（Panel）            |
-| Ctrl+Q                 | 表格高级编辑（需要先整体选中表格）      |
-| 表格最后一行Enter            | 添加下一行                  |
-| 表格Tab                  | 同行切换，最后一列后开始添加下一列      |
-| Ctrl+D                 | 删除当前段落（Delete）         |
-| Ctrl+E                 | 切换为编辑模式进行预览            |
-| Ctrl+Shift+I           | 打开DevTools查看Obsidian报错 |
-| Alt+1                  | 添加代码行                  |
-| Alt+3                  | 添加代码块                  |
-| Alt+4                  | 设置来源字体颜色插件颜色           |
-| Alt+5                  | 切换颜色块                  |
-| Alt+6                  | 自定义当前字体颜色设置            |
-| Alt+Q                  | Quiet Outline插件的目录     |
-| 文件面板Ctrl+左键单击          | 使用新tab打开文档             |
-| 文件面板Alt+左键单击           | 多选文档                   |
-| 使用Alt功能选择文档后松开，拖拽文件到文档 | 建立双向链接                 |
-| Ctrl+O                 | 快速定向到指定文件              |
-
-> 模板在attachments/templates文件夹下，可以自行增加模板
-
-## 其他功能
-
-#### 将搜索结果作为双向链接
-![](attachments/Pasted%20image%2020230823084310.png)
-
-## Obsidian 命令Alias
-
-`/`即可出现命令面板
-
-| 缩写 | 全称          | 作用         |
-|:---- |:------------- |:------------ |
-| dr   | delete raw    | 删除当前行   |
-| dc   | delete column | 删除当前列   | 
-| sd   | swap down     | 与下一行互换 |
-| su   | swap up       | 与上一行互换 |
-
-
-### AI提示词
-
-```txt
-将给定的Markdown文件进行修改：  
-1. 将文件标题作为Heading1，如果文件内部存在这个标题，则跳过。  
-2. 除了文件标题H1之外，其余地方不允许再出现H1。请调整每个标题级别符合要求。  
-3. 对其中涉及的专有英文名词，使用反引号"`"包裹。  
-4. 对于其中没有使用代码块"```"语法包裹的，请使用合适的代码块语言包裹  
-5. 尽量不要对内容进行改动，仅修复格式、语法错误或事实错误。  
-6. 若有事实错误修正的，最后总结改动项。  
-7. 标号也统一使用markdown列表序号，如①等需要进行修改。  
-8. 如果存在代码段，或命令，请换用反引号包裹，如: .HasKey(c =\> c.Id) => `.HasKey(c => c.Id) `  
-9. 如果存在外部地址形如`<https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/xmldoc/recommended-tags>`格式的，替换为可阅读的格式：`[Recommended XML documentation tags - C# reference | Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/xmldoc/recommended-tags)`
-10. 如果存在英文原文的一大段话，无需翻译成中文，仅需调整格式。
-```
-
-
-```
-将给定Markdown文件进行拆分，按照大章节目录拆为多个小文件，根据当前文件层级来拆分，如按照H1拆分，如拆分文件仍过大，则按照H2拆分，以此类推。拆分后的文件名与当前章节有关，如果是英文则保持英文标题。  
-要以当前文件名建立新文件夹，并把拆分后的文件放入到新文件夹下。  
-对每个拆分后的文件进行修改：  
-1. 将文件标题作为Heading1，如果文件内部存在这个标题，则跳过。  
-2. 除了文件标题H1之外，其余地方不允许再出现H1。请调整每个标题级别符合要求。  
-3. 对其中涉及的专有英文名词，使用反引号"`"包裹。  
-4. 对于其中没有使用代码块"```"语法包裹的，请使用合适的代码块语言包裹  
-5. 尽量不要对内容进行改动，仅修复格式、语法错误或事实错误。  
-6. 若有事实错误修正的，最后总结改动项。  
-7. 标号也统一使用markdown列表序号，如①等需要进行修改。  
-8. 如果存在代码段，或命令，请换用反引号包裹，如: .HasKey(c =\> c.Id) => `.HasKey(c => c.Id) `  
-9. 如果存在外部地址形如`<https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/xmldoc/recommended-tags>`格式的，替换为可阅读的格式：`[Recommended XML documentation tags - C# reference | Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/xmldoc/recommended-tags)`
-10. 如果存在英文原文的一大段话，无需翻译成中文，仅需调整格式。
-```
+- 编辑器配置、Markdown 语法、快捷键与命令别名见 [SoftwareManual/Obsidian使用](SoftwareManual/Obsidian使用.md)。
+- Typora 配置见 [SoftwareManual/Typora](SoftwareManual/Typora.md)。
+- git 备份由 obsidian-git 插件自动进行；手工提交遵循 [AGENTS.md](AGENTS.md) 约定。
