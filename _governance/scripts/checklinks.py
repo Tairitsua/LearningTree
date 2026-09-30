@@ -37,7 +37,10 @@ for md in md_files:
             continue
         if in_fence:
             continue
-        for m in LINK_RE.finditer(line):
+        # 行内代码段（`...`）内的链接不校验（占位示例）
+        segs = line.split("`")
+        scan_line = "".join(segs[0::2]) if len(segs) % 2 == 1 else line
+        for m in LINK_RE.finditer(scan_line):
             raw = m.group(3)
             if raw.startswith(IGNORED_PREFIXES):
                 continue
@@ -65,6 +68,8 @@ for md in md_files:
 orphans = []
 if (VAULT / "attachments").is_dir():
     for p in (VAULT / "attachments").rglob("*"):
+        if "_orphan" in p.parts:
+            continue
         if p.is_file() and p.suffix.lower() in {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"}:
             rel = p.relative_to(VAULT).as_posix()
             if rel.lower() not in referenced:
