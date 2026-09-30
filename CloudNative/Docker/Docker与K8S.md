@@ -97,7 +97,7 @@ K8S 支持多种容器运行时（通过 CRI 接口）：
 - **CRI-O**（Red Hat 推荐）
 - **gVisor, kata-containers**（安全沙箱）
 
-> 时效注：`dockershim` 已随 `Kubernetes 1.24`（2022-05）移除，新集群不再支持经 `Docker Engine` 接入 `CRI`；本文记录的是 `dockershim` 时代（`Docker 20.10.8` / `containerd v1.4.9`）集群的观察结果。
+> 时效注：`dockershim` 已随 `Kubernetes 1.24`（2022-05）移除，新集群不再支持经 `Docker Engine` 接入 `CRI`；本文记录的是 `dockershim` 时代（`Docker 20.10.8` / `containerd v1.4.9`）集群的观察结果。2026-09 已核实无误（v1.20 弃用、v1.24 移除，来源：Kubernetes 1.24 官方发布公告 kubernetes.io/blog/2022/05/03/kubernetes-1-24-release-announcement/）。
 
 ### 2. 该环境使用的是 containerd
 

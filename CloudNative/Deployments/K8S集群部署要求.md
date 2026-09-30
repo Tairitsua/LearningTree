@@ -4,7 +4,7 @@
 > ① 文末新增"参考资料"节，由原 `Deployments/K8S部署笔记.md`（外链清单）并入，源文件已 `git rm`；
 > ② 隐私脱敏：时钟服务器内网 IP 已替换为 `192.168.x.x`（原值见 `_governance/migration-log-cloudnative.md`）；
 > ③ 笔误修正：`im` → `vim`；"openEuler 软件源"命令块中错乱的全角（2）（3）（3）（4）编号已整理为顺序命令；
-> ④ `net.ipv4.tcp_tw_recycle` 处加注"[内核 4.12 起已移除，待事实核查确认]"；
+> ④ `net.ipv4.tcp_tw_recycle` 处加注"[内核 4.12 起已移除，待事实核查确认]"（2026-09 事实核查完成，该注已改为确定性表述）；
 > ⑤ "系统资源限制配置"一节 AI 粘贴痕迹重排为正式笔记。
 
 ## 节点要求
@@ -136,7 +136,7 @@ nameserver 188.xxx.xxx.xxx
 - **系统 `TCP/IP` 连接（本地端口范围）**：通过 `cat /proc/sys/net/ipv4/ip_local_port_range` 检查，默认值通常是 32768 到 61000，可通过 `sysctl net.ipv4.ip_local_port_range="min max"` 更改。其他影响 `TCP/IP` 连接的参数还有 `net.ipv4.tcp_fin_timeout`、`net.ipv4.tcp_tw_recycle` 和 `net.ipv4.tcp_tw_reuse`。
 - **每进程内存映射最大数量**：通过 `cat /proc/sys/vm/max_map_count` 检查，默认值通常是 65530，可通过 `sysctl vm.max_map_count=number` 更改。
 
-> `net.ipv4.tcp_tw_recycle` 参数[内核 4.12 起已移除，待事实核查确认]，新内核上已无法通过 `sysctl` 调整该参数。
+> `net.ipv4.tcp_tw_recycle` 参数自 Linux 内核 4.12（2017）起已被移除（mainline commit 4396e46187c4 "tcp: remove tcp_tw_recycle"），新内核上已无法通过 `sysctl` 调整该参数。已核实无误（来源：Linux 内核提交 4396e46187c4；Vincent Bernat《Coping with the TCP TIME-WAIT state on busy Linux servers》注记 "it doesn't even exist anymore since Linux 4.12"）。
 
 以上只是 `Linux` 中系统句柄及其限制的一些例子，可能还有其他类型的句柄具有不同的限制和更改方法，可查阅 `Linux` 文档了解更多。
 

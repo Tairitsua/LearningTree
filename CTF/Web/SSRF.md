@@ -24,6 +24,8 @@ gopher://<host>:<port>/<gopher-path>_<TCP数据流>
 
 #### 限制
 
+> 历史经验表（记录于 PHP 5.x 时期），新版本支持情况已变化，使用前请实测。
+
 |语言|支持情况|
 |---|---|
 |PHP|`--with-curlwrappers`且php版本至少为5.3|
@@ -31,6 +33,8 @@ gopher://<host>:<port>/<gopher-path>_<TCP数据流>
 |Curl|低版本不支持|
 |Perl|支持|
 |ASP.NET|小于版本3|
+
+> 2026-09 核查修正：PHP 行已过时——`--with-curlwrappers` 配置项自 PHP 5.5 起被移除（官方 RFC《Removal of curl-wrappers》，仅移除 curl 流包装器、ext/curl 本身保留），故该行的适用范围只有 PHP 5.3/5.4；此后 gopher 等协议须经 ext/curl（libcurl）发起，`file_get_contents` 等流式 API 不再支持 gopher（来源：wiki.php.net/rfc/curl-wrappers-removal-rfc；Nikita Popov《PHP 5.5 changes》"curlwrappers removed (not ext/curl itself!)"）。
 
 几点局限性：
 - 大部分 PHP 并不会开启 fopen 的 gopher wrapper

@@ -34,7 +34,7 @@
 
 `ip.addr == xxx.xxx.xxx.xxx` source或destination是指定ip的数据包
 
-> [!question] 待事实核查：`ip.src_host`/`ip.dst_host` 疑似非标准显示过滤器写法，标准写法为 `ip.src`/`ip.dst`。
+> 2026-09 已核实：`ip.src_host`/`ip.dst_host` 是官方存在的字段（"Source Host"/"Destination Host"，字符串型，取值为名称解析后的主机名，未解析时为 IP 字符串）；按 IP 地址过滤的标准写法为 `ip.src`/`ip.dst`（IPv4 地址类型，证书/过滤器参考中即"Source Address"）（来源：Wireshark 官方 Display Filter Reference — IP，wireshark.org/docs/dfref/i/ip.html）。
 
 ```bash
 # 可以提取想要的数据
